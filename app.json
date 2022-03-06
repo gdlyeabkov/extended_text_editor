@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "text_editor",
+    "slug": "text_editor",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ]
+  },
+  "name": "text_editor"
+}
