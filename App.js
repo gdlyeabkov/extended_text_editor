@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { StyleSheet, Text, View, DrawerLayoutAndroid, Button, TextInput, ScrollView, TouchableOpacity, BackHandler, Share, ToastAndroid, Switch } from 'react-native'
+import { StyleSheet, Text, View, DrawerLayoutAndroid, Button, TextInput, ScrollView, TouchableOpacity, BackHandler, Share, ToastAndroid, Switch, Clipboard, Animated } from 'react-native'
 // import CheckBox from '@react-native-community/checkbox'
 import CheckBox from 'react-native-check-box'
 import { NavigationContainer } from '@react-navigation/native'
@@ -17,8 +17,13 @@ import * as MaterialMenu from 'react-native-material-menu'
 import { setStatusBarBackgroundColor } from 'expo-status-bar'
 // import * as RNFetchBlob from 'rn-fetch-blob'
 // import RNFetchBlob from 'react-native-fetch-blob'
+import { ColorPicker } from 'react-native-color-picker'
+// import { TabView, SceneMap } from 'react-native-tab-view'
+import * as SQLite from 'expo-sqlite'
 
 const Stack = createNativeStackNavigator()
+
+var db = null
 
 export default function App() {
 
@@ -31,6 +36,14 @@ export default function App() {
   const [isFindDialogVisible, setIsFindDialogVisible] = useState(false)
 
   const testActivity = 'MainActivity'
+
+  db = SQLite.openDatabase('texteditordatabase.db')
+
+  db.transaction(transaction => {
+    let sqlStatement = 'CREATE TABLE IF NOT EXISTS bookmarks (_id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, path TEXT);'
+    transaction.executeSql(sqlStatement, [], (tx, receivedTable) => {
+    })
+  })
 
   return (
     <NavigationContainer>
@@ -660,6 +673,31 @@ export function MainActivity({ navigation }) {
 
   const [isStatisticsDialogVisible, setIsStatisticsDialogVisible] = useState(false)
 
+  const [isInsertColorDialogVisible, setIsInsertColorDialogVisible] = useState(false)
+
+  const [openedDocs, setOpenedDocs] = useState([
+    {
+      name: 'Безымянный.txt',
+      content: ''
+    }
+  ])
+
+  const [isSaveDialogVisible, setIsSaveDialogVisible] = useState(false)
+
+  const [activeOpenedDocIndex, setActiveOpenedDocIndex] = useState(0)
+
+  const [savedFileName, setSavedFileName] = useState('Безымянный.txt')
+
+  // const [hue, setHue] = useState(null)
+
+  // const [colorVal, setColorVal] = useState(null)
+  
+  // const [saturation, setSaturation] = useState(null)
+
+  const [color, setColor] = useState('') 
+
+  const [isInsertTimeStampDialogVisible, setIsInsertTimeStampDialogVisible] = useState(false)
+
   const [isToolBarEnabled, setIsToolBarEnabled] = useState(true)
 
   navigation.setOptions({
@@ -679,8 +717,16 @@ export function MainActivity({ navigation }) {
             }}
             style={styles.mainActivityHeaderRightItemMenuItem}
           >
-            <View
+            <TouchableOpacity
               style={styles.mainActivityHeaderRightItemMenuItemRow}
+              onPress={() => {
+                const updatedDocs = openedDocs
+                updatedDocs.push({
+                  name: 'Безымянный.txt',
+                  content: ''
+                })
+                setOpenedDocs(updatedDocs)
+              }}
             >
               <Ionicons name="add-outline" size={24} color="black" />
               <Text
@@ -688,7 +734,7 @@ export function MainActivity({ navigation }) {
               >
                 Создать
               </Text>
-            </View>
+            </TouchableOpacity>
           </MaterialMenu.MenuItem>
           <MaterialMenu.MenuItem
             onPress={() => {
@@ -783,12 +829,24 @@ export function MainActivity({ navigation }) {
           <MaterialMenu.MenuItem
             onPress={() => {
               setIsMainActivityFolderContextMenuVisible(false)
-              
             }}
             style={styles.mainActivityHeaderRightItemMenuItem}
           >
-            <View
+            <TouchableOpacity
               style={styles.mainActivityHeaderRightItemMenuItemRow}
+              onPress={() => {
+                let updatedDocs = openedDocs
+                const openedDocsCount = updatedDocs.length
+                const isOpenedDocumentsMore = openedDocsCount >= 2
+                if (isOpenedDocumentsMore) {
+                  updatedDocs = updatedDocs.filter((updatedDoc, updatedDocIndex) => {
+                    const isNotActiveDoc = updatedDocIndex !== activeOpenedDocIndex
+                    return isNotActiveDoc
+                  })
+                  setOpenedDocs(updatedDocs)
+                  setActiveOpenedDocIndex(0)
+                }
+              }}
             >
               <Entypo name="cross" size={24} color="black" />
               <Text
@@ -796,7 +854,7 @@ export function MainActivity({ navigation }) {
               >
                 Закрыть
               </Text>
-            </View>
+            </TouchableOpacity>
           </MaterialMenu.MenuItem>
         </MaterialMenu.Menu>
         <Entypo
@@ -872,8 +930,9 @@ export function MainActivity({ navigation }) {
             }}
             style={styles.mainActivityHeaderRightItemMenuItem}
           >
-            <View
+            <TouchableOpacity
               style={styles.mainActivityHeaderRightItemMenuItemRow}
+              onPress={() => fetchCopiedText()}
             >
               <MaterialIcons name="content-paste" size={24} color="black" />
               <Text
@@ -881,7 +940,7 @@ export function MainActivity({ navigation }) {
               >
                 Вставить
               </Text>
-            </View>
+            </TouchableOpacity>
           </MaterialMenu.MenuItem>
           <MaterialMenu.MenuItem
             onPress={() => {
@@ -890,8 +949,9 @@ export function MainActivity({ navigation }) {
             }}
             style={styles.mainActivityHeaderRightItemMenuItem}
           >
-            <View
+            <TouchableOpacity
               style={styles.mainActivityHeaderRightItemMenuItemRow}
+              onPress={() => setIsInsertColorDialogVisible(true)}
             >
               <FontAwesome5 name="palette" size={24} color="black" />
               <Text
@@ -899,7 +959,7 @@ export function MainActivity({ navigation }) {
               >
                 Вставить цвет
               </Text>
-            </View>
+            </TouchableOpacity>
           </MaterialMenu.MenuItem>
           <MaterialMenu.MenuItem
             onPress={() => {
@@ -908,8 +968,9 @@ export function MainActivity({ navigation }) {
             }}
             style={styles.mainActivityHeaderRightItemMenuItem}
           >
-            <View
+            <TouchableOpacity
               style={styles.mainActivityHeaderRightItemMenuItemRow}
+              onPress={() => setIsInsertTimeStampDialogVisible(true)}
             >
               <MaterialIcons name="access-time" size={24} color="black" />
               <Text
@@ -917,17 +978,20 @@ export function MainActivity({ navigation }) {
               >
                 Вставить времен. метку
               </Text>
-            </View>
+            </TouchableOpacity>
           </MaterialMenu.MenuItem>
           <MaterialMenu.MenuItem
             onPress={() => {
               setIsMainActivityPenContextMenuVisible(false)
-              
             }}
             style={styles.mainActivityHeaderRightItemMenuItem}
           >
-            <View
+            <TouchableOpacity
               style={styles.mainActivityHeaderRightItemMenuItemRow}
+              onPress={() => {
+                setMainTextAreaContent(`\t${mainTextAreaContent}`)
+                setIsMainActivityPenContextMenuVisible(false)
+              }}
             >
               <AntDesign name="arrowright" size={24} color="black" />
               <Text
@@ -935,17 +999,26 @@ export function MainActivity({ navigation }) {
               >
                 Увеличить отступ
               </Text>
-            </View>
+            </TouchableOpacity>
           </MaterialMenu.MenuItem>
           <MaterialMenu.MenuItem
             onPress={() => {
               setIsMainActivityPenContextMenuVisible(false)
-              
             }}
             style={styles.mainActivityHeaderRightItemMenuItem}
           >
-            <View
+            <TouchableOpacity
               style={styles.mainActivityHeaderRightItemMenuItemRow}
+              onPress={() => {
+                const findIndex = mainTextAreaContent.indexOf('\t')
+                const isIndexFound = findIndex !== -1
+                if (isIndexFound) {
+                  const mainTextAreaContentLength = mainTextAreaContent.length
+                  const updatedMainTextAreaContent = mainTextAreaContent.substring(2, mainTextAreaContentLength)
+                  setMainTextAreaContent(updatedMainTextAreaContent)
+                }
+                setIsMainActivityPenContextMenuVisible(false)
+              }}
             >
               <AntDesign name="arrowleft" size={24} color="black" />
               <Text
@@ -953,7 +1026,7 @@ export function MainActivity({ navigation }) {
               >
                 Уменьшить отступ
               </Text>
-            </View>
+            </TouchableOpacity>
           </MaterialMenu.MenuItem>
         </MaterialMenu.Menu>
         <FontAwesome5
@@ -1345,7 +1418,7 @@ export function MainActivity({ navigation }) {
                     style={styles.mainActivityContainerArticleNavigationViewContainerRowAsideInfoName}
                   >
                     {
-                      doc.content
+                      doc.name
                     }
                   </Text>
                   <View
@@ -1362,7 +1435,7 @@ export function MainActivity({ navigation }) {
                       style={styles.mainActivityContainerArticleNavigationViewContainerRowAsideInfoFooterDateLabel}
                     >
                       {
-                        'doc.info.modificationTime'
+                        getParsedDate(doc.info.modificationTime)
                       }
                     </Text>
                   </View>
@@ -1386,31 +1459,95 @@ export function MainActivity({ navigation }) {
   )
 
   const _getAllFilesInDirectory = async() => {
-    docsList = []
     let dir = await FileSystem.readDirectoryAsync(FileSystem.cacheDirectory)
     dir.forEach(async (val) => {
       console.log(`FileSystem.cacheDirectory + val: ${FileSystem.cacheDirectory + val}`)
-      // docsList.push(FileSystem.cacheDirectory + val)
       const fileUri = FileSystem.cacheDirectory + val
       const content = await FileSystem.readAsStringAsync(fileUri, { encoding: FileSystem.EncodingType.UTF8 })
       const info = await FileSystem.getInfoAsync(fileUri)
+      const fileUriParts = fileUri.split('/')
+      const fileUriPartsLength = fileUriParts.length
+      const lastFileUriPartIndex = fileUriPartsLength - 1
+      const fileName = fileUriParts[lastFileUriPartIndex]
       const docInfo = {
         content: content,
-        info: info
+        info: info,
+        name: fileName
       }
       docsList.push(docInfo)
     })
   }
 
   const createFile = async () => {
-    let fileUri = FileSystem.cacheDirectory + 'expo_text_plain_2.txt'
+    let fileUri = FileSystem.cacheDirectory + savedFileName
     console.log(`create fileUri: ${fileUri}`)
-    await FileSystem.writeAsStringAsync(fileUri, 'abc', { encoding: FileSystem.EncodingType.UTF8 })
+    await FileSystem.writeAsStringAsync(fileUri, mainTextAreaContent, { encoding: FileSystem.EncodingType.UTF8 })
   }
 
-  useEffect(() => {
-    _getAllFilesInDirectory()
-  }, [])
+  const fetchCopiedText = async () => {
+    const text = await Clipboard.getString()
+    console.log(`text: ${text}`)
+    setMainTextAreaContent(`${mainTextAreaContent}${text}`)
+  }
+
+  const getParsedDate = (millis) => {
+    const date = new Date()
+    date.setMilliseconds(millis)
+    const parsedDate = date.toLocaleDateString()
+    return parsedDate
+  }
+
+  const getCustomStyle = () => {
+    let backgroundColor = ''
+    if (styleType === 'Стандартная') {
+      backgroundColor = 'rgb(255, 255, 255)' 
+    } else if (styleType === 'GitHub') {
+      backgroundColor = 'rgb(250, 250, 250)'
+    } else if (styleType === 'GitHubv2') {
+      backgroundColor = 'rgb(245, 245, 245)'
+    } else if (styleType === 'Tomorrow') {
+      backgroundColor = 'rgb(240, 240, 240)'
+    } else if (styleType === 'Hemisu') {
+      backgroundColor = 'rgb(235, 235, 235)'
+    } else if (styleType === 'AtelierCave') {
+      backgroundColor = 'rgb(230, 230, 230)'
+    } else if (styleType === 'AtelierDune') {
+      backgroundColor = 'rgb(225, 225, 225)'
+    } else if (styleType === 'AtelierEstuary') {
+      backgroundColor = 'rgb(220, 220, 220)'
+    } else if (styleType === 'AtelierForest') {
+      backgroundColor = 'rgb(215, 215, 215)'
+    } else if (styleType === 'AtelierHeath') {
+      backgroundColor = 'rgb(210, 210, 210)'
+    } else if (styleType === 'AtelierLakeside') {
+      backgroundColor = 'rgb(205, 205, 205)'
+    } else if (styleType === 'AtelierPlateau') {
+      backgroundColor = 'rgb(200, 200, 200)'
+    } else if (styleType === 'AtelierSavanna') {
+      backgroundColor = 'rgb(195, 195, 195)'
+    } else if (styleType === 'AtelierSeaside') {
+      backgroundColor = 'rgb(190, 190, 190)'
+    } else if (styleType === 'AtelierSulphurpool') {
+      backgroundColor = 'rgb(185, 185, 185)'
+    }
+    return {
+      backgroundColor: backgroundColor
+    }
+  }
+
+  const getActiveOpenedDoc = (openedDocIndex) => {
+    if (activeOpenedDocIndex === openedDocIndex) {
+      return {
+        backgroundColor: 'rgb(235, 235, 235)'
+      }
+    } else {
+      return {
+        backgroundColor: 'rgb(200, 200, 200)'
+      }
+    }
+  }
+
+  _getAllFilesInDirectory()
 
   return (
     <>
@@ -1426,8 +1563,50 @@ export function MainActivity({ navigation }) {
           drawerPosition={articleDrawerPosition}
           renderNavigationView={articleNavigationView}
         >
+          {
+            openedDocs.length >= 2 ?
+              <ScrollView
+                horizontal={true}
+                style={styles.mainActivtyTabs}
+              >
+                {
+                  openedDocs.map((openedDoc, openedDocIndex) => {
+                    return (
+                      <TouchableOpacity
+                        key={openedDocIndex}
+                        style={
+                          [
+                            styles.mainActivtyTab,
+                            getActiveOpenedDoc(openedDocIndex)
+                          ]
+                        }
+                        onPress={() => {
+                          setActiveOpenedDocIndex(openedDocIndex)
+                          const activeOpenedDoc = openedDocs[activeOpenedDocIndex]
+                          const activeOpenedDocContent = activeOpenedDoc.content
+                          setMainTextAreaContent(activeOpenedDocContent)
+                        }}
+                      >
+                        <Text>
+                          {
+                            openedDoc.name
+                          }
+                        </Text>
+                      </TouchableOpacity>
+                    )
+                  })
+                }
+              </ScrollView>
+            :
+              <View>
+
+              </View>
+          }
           <ScrollView
-            style={styles.mainActivtyContainer}
+            style={[
+              styles.mainActivtyContainer,
+              getCustomStyle()
+            ]}
           >
             <View
               style={styles.mainActivtyContainerRow}
@@ -1450,13 +1629,18 @@ export function MainActivity({ navigation }) {
               <TextInput
                 multiline
                 editable={isMainTextAreaEditable}
-                value={isMainTextAreaEditable}
+                value={mainTextAreaContent}
                 ref={(ref) => {
                   // console.log(`ref.selection: ${ref.selection.start}`)
                 }}
                 onSelectionChange={(event) => setMainTextAreaSelection(event.nativeEvent.selection)}
                 // selection={mainTextAreaSelection}
-                onChangeText={(value) => setMainTextAreaContent(value)}
+                onChangeText={async (value) => {
+                  await setMainTextAreaContent(value)
+                  const updatedOpenedDocs = openedDocs
+                  updatedOpenedDocs[activeOpenedDocIndex].content = value
+                  setOpenedDocs(updatedOpenedDocs)
+                }}
                 onContentSizeChange={(e) => {
                   const nativeEvent = e.nativeEvent
                   const contentSize = nativeEvent.contentSize
@@ -1491,7 +1675,12 @@ export function MainActivity({ navigation }) {
                   color="black"
                   onPress={() => setIsFindDialogVisible(true)}
                 />
-                <Ionicons name="ios-save" size={24} color="black" />
+                <Ionicons
+                  name="ios-save"
+                  size={24}
+                  color="black"
+                  onPress={() => setIsSaveDialogVisible(true)}
+                />
                 <Entypo name="cross" size={24} color="black" />
               </View>
             :
@@ -1500,6 +1689,78 @@ export function MainActivity({ navigation }) {
               </View>
           }
         </DrawerLayoutAndroid>
+        <Dialog
+          visible={isInsertColorDialogVisible}
+          onDismiss={() => setIsInsertColorDialogVisible(false)}>
+          <Dialog.Title>
+            Вставить цвет
+          </Dialog.Title>
+          <Dialog.Content>
+            <View
+              style={styles.colorPickerWrap}
+            >
+
+            </View>
+            <ColorPicker
+              onColorSelected={color => setColor(color)}
+              style={styles.colorpiker}
+            />
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button
+              title="ОТМЕНА"
+              onPress={() => {
+                showToast(`ОТМЕНА`)
+                setIsInsertColorDialogVisible(false)
+              }}
+            />
+            <Button
+              title="ОК"
+              onPress={() => {
+                showToast(`ОК`)
+                setMainTextAreaContent(mainTextAreaContent + color)
+                setIsInsertColorDialogVisible(false)
+              }}
+            />
+          </Dialog.Actions>
+        </Dialog>
+        <Dialog
+          visible={isInsertTimeStampDialogVisible}
+          onDismiss={() => setIsInsertTimeStampDialogVisible(false)}>
+          <Dialog.Title>
+            Вставить временную метку
+          </Dialog.Title>
+          <Dialog.Content>
+            <Text>
+              Количество символов
+            </Text>
+            <Text>
+              qwe
+            </Text>
+            <Text>
+              Количество слов
+            </Text>
+            <Text>
+              asd
+            </Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button
+              title="ОТМЕНА"
+              onPress={() => {
+                showToast(`ОТМЕНА`)
+                setIsInsertTimeStampDialogVisible(false)
+              }}
+            />
+            <Button
+              title="ОК"
+              onPress={() => {
+                showToast(`ОК`)
+                setIsInsertTimeStampDialogVisible(false)
+              }}
+            />
+          </Dialog.Actions>
+        </Dialog>
         <Dialog
           visible={isFindDialogVisible}
           onDismiss={() => setIsFindDialogVisible(false)}>
@@ -1985,6 +2246,107 @@ export function MainActivity({ navigation }) {
               onPress={() => {
                 showToast(`ОК`)
                 setIsStatisticsDialogVisible(false)
+              }}
+            />
+          </Dialog.Actions>
+        </Dialog>
+        <Dialog
+          visible={isSaveDialogVisible}
+          onDismiss={() => setIsSaveDialogVisible(false)}>
+          <Dialog.Content>
+            <View
+              style={styles.dialogRowBetween}
+            >
+              <Text>
+                /storage/emulated/0
+              </Text>
+              <Entypo name="home" size={24} color="black" />
+            </View>
+            <ScrollView
+              style={styles.saveDialogScrollBody}
+            >
+              {
+                docsList.map((doc, docIndex) => {
+                  return (
+                    <TouchableOpacity
+                      key={docIndex}
+                      style={styles.mainActivityContainerArticleNavigationViewContainerRow}
+                      onPress={() => setSavedFileName(doc.name)}
+                    >
+                      <View
+                        style={styles.mainActivityContainerArticleNavigationViewContainerRowAside}
+                      >
+                        <Entypo
+                          name="folder"
+                          size={24}
+                          color="black"  
+                        />
+                        <View
+                          style={styles.mainActivityContainerArticleNavigationViewContainerRowAsideInfo}
+                        >
+                          <Text
+                            style={styles.mainActivityContainerArticleNavigationViewContainerRowAsideInfoName}
+                          >
+                            {
+                              doc.name
+                            }
+                          </Text>
+                          <View
+                            style={styles.mainActivityContainerArticleNavigationViewContainerRowAsideInfoFooter}
+                          >
+                            <Text
+                              style={styles.mainActivityContainerArticleNavigationViewContainerRowAsideInfoFooterSizeLabel}
+                            >
+                              {
+                                `${doc.info.size} байт`
+                              }
+                            </Text>
+                            <Text
+                              style={styles.mainActivityContainerArticleNavigationViewContainerRowAsideInfoFooterDateLabel}
+                            >
+                              {
+                                getParsedDate(doc.info.modificationTime)
+                              }
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+                      <Feather
+                        name="more-vertical"
+                        size={24}
+                        color="black"
+                        style={styles.mainActivityHeaderRightItem}
+                      />
+                    </TouchableOpacity>
+                  )
+                })
+              }
+            </ScrollView>
+            <View
+              style={styles.dialogRowBetween}
+            >
+              <Text>
+                Имя файла:
+              </Text>
+              <TextInput
+                width={125}
+                value={savedFileName}
+                onChangeText={(value) => setSavedFileName(value)}
+              />
+            </View>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button
+              title="ОТМЕНА"
+              onPress={() => {
+                setIsSaveDialogVisible(false)
+              }}
+            />
+            <Button
+              title="ОК"
+              onPress={() => {
+                createFile()
+                setIsSaveDialogVisible(false)
               }}
             />
           </Dialog.Actions>
@@ -2972,13 +3334,32 @@ export function BookmarksActivity() {
   
   const [bookmarks, setBookmarks] = useState([])
 
+  db.transaction(transaction => {
+    const sqlStatement = 'SELECT * FROM bookmarks;'
+    transaction.executeSql(sqlStatement, [], (tx, receivedBookmarks) => {
+      let tempReceivedBookmarks = []
+      Array.from(receivedBookmarks.rows).forEach((bookmarksRow, bookmarksRowIdx) => {
+        const bookmark = Object.values(receivedBookmarks.rows.item(bookmarksRowIdx))
+        tempReceivedBookmarks = [
+          ...tempReceivedBookmarks,
+          {
+            id: bookmark[0],
+            name: bookmark[1],
+            path: bookmark[2]
+          }
+        ]
+      })
+      setBookmarks(tempReceivedBookmarks)
+    })
+  })
+
   return (
     <View
       style={styles.bookmarksActivity}
     >
       {
         bookmarks.length >= 1 ?
-          bookmarks.map((doc, docIndex) => {
+          bookmarks.map((bookmark, bookmarkIndex) => {
             return (
               <View
                 style={styles.bookmarksActivityItem}
@@ -2989,17 +3370,21 @@ export function BookmarksActivity() {
                   color="black"
                 />
                 <View
-                  style={styles.bookmarksActivityItem}
+                  style={styles.bookmarksActivityItemAside}
                 >
                   <Text
                     style={styles.bookmarksActivityItemNameLabel}
                   >
-                    Закладка Имя  
+                    {
+                      bookmark.name
+                    }
                   </Text>
                   <Text
                     style={styles.bookmarksActivityItemPathLabel}
                   >
-                    Закладка Путь
+                    {
+                      bookmark.path
+                    }
                   </Text>
                 </View>
               </View>
@@ -3020,6 +3405,68 @@ export function FilesActionActivity({ navigation }) {
   
   const [docsList, setDocsList] = useState([])
 
+  const [bookmarks, setBookmarks] = useState([])
+  
+  const [currentPath, setCurrentPath] = useState('/storage/emulated/0')
+
+  const [savedBookmarkName, setSavedBookmarkName] = useState('')
+
+  const [isAddBookmarkDialogVisible, setIsAddBookmarkDialogVisible] = useState(false)
+
+  const [isBookmarkFound, setIsBookmarkFound] = useState(false)
+
+  const showToast = (msg) => {
+    ToastAndroid.show(msg, ToastAndroid.LONG)
+  }
+
+  const toggleBookmark = () => {
+    const iterableBookMarks = bookmarks
+    // const isBookmarkExists = iterableBookMarks.some((bookmark) => {
+    //   setIsBookmarkFound(true)
+    //   return bookmark.path === currentPath
+    // })
+    const isBookmarkExists = isBookmarkFound
+    if (isBookmarkExists) {
+      let sqlStatement = `DELETE FROM \"bookmarks\" WHERE path=\"${currentPath}\";`
+      db.transaction(transaction => {
+        transaction.executeSql(sqlStatement, [], (tx, receivedIndicators) => {
+          setIsBookmarkFound(false)
+          showToast('Удалено из закладок')
+        })
+      })
+    } else {
+      setIsAddBookmarkDialogVisible(true)
+    }
+  }
+
+  db.transaction(transaction => {
+    const sqlStatement = 'SELECT * FROM bookmarks;'
+    transaction.executeSql(sqlStatement, [], (tx, receivedBookmarks) => {
+      let tempReceivedBookmarks = []
+      Array.from(receivedBookmarks.rows).forEach((bookmarksRow, bookmarksRowIdx) => {
+        const bookmark = Object.values(receivedBookmarks.rows.item(bookmarksRowIdx))
+        tempReceivedBookmarks = [
+          ...tempReceivedBookmarks,
+          {
+            id: bookmark[0],
+            name: bookmark[1],
+            path: bookmark[2]
+          }
+        ]
+      })
+      setBookmarks(tempReceivedBookmarks)
+    })
+  })
+
+  useEffect(() => {
+    const iterableBookMarks = bookmarks
+    const isBookmarkExists = iterableBookMarks.some((bookmark) => {
+      setIsBookmarkFound(true)
+      return bookmark.path === currentPath
+    })
+    setIsBookmarkFound(isBookmarkExists)
+  }, [bookmarks])
+
   navigation.setOptions({
     headerRight: () => (
       <View
@@ -3031,12 +3478,24 @@ export function FilesActionActivity({ navigation }) {
           color="black"
           style={styles.filesActionAcitivityMenuItem}
         />
-        <AntDesign
-          name="staro"
-          size={24}
-          color="black"
-          style={styles.filesActionAcitivityMenuItem}
-        />
+        {
+          isBookmarkFound ?
+            <AntDesign
+              name="star"
+              size={24}
+              color="black"
+              style={styles.filesActionAcitivityMenuItem}
+              onPress={() => toggleBookmark()}
+            />
+          :
+            <AntDesign
+              name="staro"
+              size={24}
+              color="black"
+              style={styles.filesActionAcitivityMenuItem}
+              onPress={() => toggleBookmark()}
+            />
+        }
         <AntDesign
           name="filter"
           size={24}
@@ -3048,11 +3507,56 @@ export function FilesActionActivity({ navigation }) {
   })
   
   return (
-    <View>
-      <Text>
-        FilesActionActivity
-      </Text>
-    </View>
+    <>
+      <ScrollView>
+        
+      </ScrollView>
+      <Dialog
+          visible={isAddBookmarkDialogVisible}
+          onDismiss={() => setIsAddBookmarkDialogVisible(false)}>
+          <Dialog.Title>
+            Закладка
+          </Dialog.Title>
+          <Dialog.Content>
+            <Text>
+              Имя
+            </Text>
+            <TextInput
+              value={savedBookmarkName}
+              onChangeText={(value) => setSavedBookmarkName(value)}
+            />
+            <Text>
+              Путь
+            </Text>
+            <Text>
+              {
+                currentPath
+              }
+            </Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button
+              title="ОТМЕНА"
+              onPress={() => {
+                showToast(`ОТМЕНА`)
+                setIsAddBookmarkDialogVisible(false)
+              }}
+            />
+            <Button
+              title="ОК"
+              onPress={() => {
+                let sqlStatement = `INSERT INTO \"bookmarks\"(name, path) VALUES (\"${savedBookmarkName}\", \"${currentPath}\");`
+                db.transaction(transaction => {
+                  transaction.executeSql(sqlStatement, [], (tx, receivedTable) => {
+                    showToast('Добавлено в закладки')
+                    setIsAddBookmarkDialogVisible(false)
+                  })
+                })
+              }}
+            />
+          </Dialog.Actions>
+        </Dialog>
+    </>
   )
 }
 
@@ -3114,7 +3618,7 @@ const styles = StyleSheet.create({
     marginLeft: 15
   },
   mainActivtyContainer: {
-
+    
   },
   mainActivtyToolBar: {
     position: 'absolute',
@@ -3238,11 +3742,13 @@ const styles = StyleSheet.create({
   },
   bookmarksActivityItem: {
     display: 'flex',
-    flexDirection: 'row'
+    flexDirection: 'row',
+    alignItems: 'center'
   },
-  bookmarksActivityItem: {
+  bookmarksActivityItemAside: {
     display: 'flex',
-    flexDirection: 'column'
+    flexDirection: 'column',
+    marginLeft: 25
   },
   bookmarksActivityItemNameLabel: {
 
@@ -3260,5 +3766,38 @@ const styles = StyleSheet.create({
   },
   dialogContentRowLabel: {
     marginLeft: 25
+  },
+  colorPickerWrap: {
+    width: '100%',
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center'
+  },
+  colorpiker:{
+    width: '75%',
+    height: '75%'
+  },
+  mainActivtyTabs: {
+    maxHeight: 35
+  },
+  mainActivtyTab: {
+    marginHorizontal: 15,
+    width: 175,
+    height: 35,
+    backgroundColor: 'rgb(200, 200, 200)',
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderTopLeftRadius: 8,
+    borderTopRightRadius: 8,
+  },
+  dialogRowBetween: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between'
+  },
+  saveDialogScrollBody: {
+    maxHeight: 150
   }
 })
