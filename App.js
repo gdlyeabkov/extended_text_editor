@@ -1,10 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { StyleSheet, Text, View, DrawerLayoutAndroid, Button, TextInput, ScrollView, TouchableOpacity, BackHandler, Share, ToastAndroid, Switch, Clipboard, Animated } from 'react-native'
-// import CheckBox from '@react-native-community/checkbox'
+import { StyleSheet, Text, View, DrawerLayoutAndroid, Button, TextInput, ScrollView, TouchableOpacity, BackHandler, Share, ToastAndroid, Switch, Clipboard, useWindowDimensions } from 'react-native'
 import CheckBox from 'react-native-check-box'
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import { Entypo, MaterialIcons, Ionicons, Feather, AntDesign, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons'
+import { Entypo, MaterialIcons, Ionicons, Feather, AntDesign, MaterialCommunityIcons, FontAwesome5, Foundation } from '@expo/vector-icons'
 import * as FileSystem from 'expo-file-system'
 import {
   Paragraph,
@@ -15,11 +14,13 @@ import {
 } from 'react-native-paper'
 import * as MaterialMenu from 'react-native-material-menu'
 import { setStatusBarBackgroundColor } from 'expo-status-bar'
-// import * as RNFetchBlob from 'rn-fetch-blob'
-// import RNFetchBlob from 'react-native-fetch-blob'
 import { ColorPicker } from 'react-native-color-picker'
-// import { TabView, SceneMap } from 'react-native-tab-view'
+import { TabView, SceneMap } from 'react-native-tab-view'
 import * as SQLite from 'expo-sqlite'
+import * as IntentLauncher from 'expo-intent-launcher'
+// import { startActivityAsync, ActivityAction } from 'expo-intent-launcher'
+import * as WebBrowser from 'expo-web-browser'
+import * as DocumentPicker from 'expo-document-picker'
 
 const Stack = createNativeStackNavigator()
 
@@ -50,14 +51,14 @@ export default function App() {
       <Stack.Navigator initialRouteName={testActivity}>
         <Stack.Screen
           name="RecentFilesActivity"
-          component={SettingsActivity}
+          component={RecentFilesActivity}
           options={{
             title: 'Недавние файлы'
           }}
         />
         <Stack.Screen
           name="MemoryManagerActivity"
-          component={SettingsActivity}
+          component={MemoryManagerActivity}
           options={{
             title: 'Диспетчер памяти'
           }}
@@ -99,6 +100,9 @@ export default function App() {
         />
         <Stack.Screen
           name="MainActivity"
+          // initialParams={{
+          //   fileUri: ''
+          // }}
           component={ MainActivity }
           options={{
             title: '',
@@ -612,8 +616,34 @@ export default function App() {
   )
 }
 
-export function MainActivity({ navigation }) {
+export function MainActivity({ navigation, route }) {
   
+  // const { fileUri } = route.params
+  const fileUri = route.params?.fileUri ?? ''
+
+  // useEffect(async () => {
+  //   if (fileUri.length) {
+  //     const info = await FileSystem.getInfoAsync(fileUri)
+  //     const content = await FileSystem.readAsStringAsync(fileUri, { encoding: FileSystem.EncodingType.UTF8 })
+  //     console.log(`передаваемый файл ${content}`)
+  //   } else {
+  //     console.log(`передаваемый файл не существует`)
+  //   }
+  // }, [fileUri])
+
+  const getFileContent = async () => {
+    if (fileUri.length) {
+      const info = await FileSystem.getInfoAsync(fileUri)
+      const content = await FileSystem.readAsStringAsync(fileUri, { encoding: FileSystem.EncodingType.UTF8 })
+      console.log(`передаваемый файл ${content}`)
+      setMainTextAreaContent(content)
+    } else {
+      console.log(`передаваемый файл не существует`)
+    }
+  }
+
+  getFileContent()
+
   const [isMainActivityFolderContextMenuVisible, setIsMainActivityFolderContextMenuVisible] = useState(false)
 
   const [isMainActivityPenContextMenuVisible, setIsMainActivityPenContextMenuVisible] = useState(false)
@@ -622,10 +652,7 @@ export function MainActivity({ navigation }) {
 
   const [mainTextAreaContent, setMainTextAreaContent] = useState('')
 
-  const [mainTextAreaSelection, setMainTextAreaSelection] = useState({
-    start: 0,
-    end: 0
-  })
+  var mainTextAreaRef = useRef(null)
 
   const [isMainTextAreaEditable, setIsMainTextAreaEditable] = useState(true)
 
@@ -700,6 +727,10 @@ export function MainActivity({ navigation }) {
 
   const [isToolBarEnabled, setIsToolBarEnabled] = useState(true)
 
+  const _pickDocument = async () => {
+    await DocumentPicker.getDocumentAsync({})
+  }
+
   navigation.setOptions({
     headerRight: () => (
       <View
@@ -713,7 +744,6 @@ export function MainActivity({ navigation }) {
           <MaterialMenu.MenuItem
             onPress={() => {
               setIsMainActivityFolderContextMenuVisible(false)
-              
             }}
             style={styles.mainActivityHeaderRightItemMenuItem}
           >
@@ -757,12 +787,17 @@ export function MainActivity({ navigation }) {
           <MaterialMenu.MenuItem
             onPress={() => {
               setIsMainActivityFolderContextMenuVisible(false)
-              
             }}
             style={styles.mainActivityHeaderRightItemMenuItem}
           >
-            <View
+            <TouchableOpacity
               style={styles.mainActivityHeaderRightItemMenuItemRow}
+              onPress={() => {
+                // IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
+                //   flags: 1
+                // })
+                _pickDocument()
+              }}
             >
               <Feather name="folder" size={24} color="black" />
               <Text
@@ -770,7 +805,7 @@ export function MainActivity({ navigation }) {
               >
                 Открыть (SAF)
               </Text>
-            </View>
+            </TouchableOpacity>
           </MaterialMenu.MenuItem>
           <MaterialMenu.MenuItem
             onPress={() => {
@@ -797,8 +832,11 @@ export function MainActivity({ navigation }) {
             }}
             style={styles.mainActivityHeaderRightItemMenuItem}
           >
-            <View
+            <TouchableOpacity
               style={styles.mainActivityHeaderRightItemMenuItemRow}
+              onPress={() => goToActivity(navigation, 'FilesActionActivity', {
+                filesAction: 'Сохранить файл как'
+              })}
             >
               <Ionicons name="ios-save" size={24} color="black" />
               <Text
@@ -806,7 +844,7 @@ export function MainActivity({ navigation }) {
               >
                 Сохранить как
               </Text>
-            </View>
+            </TouchableOpacity>
           </MaterialMenu.MenuItem>
           <MaterialMenu.MenuItem
             onPress={() => {
@@ -912,8 +950,19 @@ export function MainActivity({ navigation }) {
             }}
             style={styles.mainActivityHeaderRightItemMenuItem}
           >
-            <View
+            <TouchableOpacity
               style={styles.mainActivityHeaderRightItemMenuItemRow}
+              onPress={() => {
+                setIsMainActivityPenContextMenuVisible(false)
+                mainTextAreaRef.focus()
+                const mainTextAreaContentLength = mainTextAreaContent.length
+                mainTextAreaRef.setNativeProps({
+                  selection: {
+                    start: 0,
+                    end: mainTextAreaContentLength
+                  }
+                })
+              }}
             >
               <MaterialIcons name="select-all" size={24} color="black" />
               <Text
@@ -921,7 +970,7 @@ export function MainActivity({ navigation }) {
               >
                 Выделить всё
               </Text>
-            </View>
+            </TouchableOpacity>
           </MaterialMenu.MenuItem>
           <MaterialMenu.MenuItem
             onPress={() => {
@@ -1050,7 +1099,10 @@ export function MainActivity({ navigation }) {
           >
             <TouchableOpacity
               style={styles.mainActivityHeaderRightItemMenuItemRow}
-              onPress={() => setIsFindDialogVisible(true)}
+              onPress={() => {
+                setIsFindDialogVisible(true)
+                setIsMainActivityMoreContextMenuVisible(false)
+              }}
             >
               <Ionicons name="search-outline" size={24} color="black" />
               <Text
@@ -1088,7 +1140,10 @@ export function MainActivity({ navigation }) {
           >
             <TouchableOpacity
               style={styles.mainActivityHeaderRightItemMenuItemRow}
-              onPress={() => setIsGoToStrokeDialogVisible(true)}
+              onPress={() => {
+                setIsMainActivityMoreContextMenuVisible(false)
+                setIsGoToStrokeDialogVisible(true)
+              }}
             >
               <MaterialCommunityIcons name="chevron-double-right" size={24} color="black" />
               <Text
@@ -1300,7 +1355,9 @@ export function MainActivity({ navigation }) {
     <View style={styles.mainActivityContainerAsideNavigationViewContainer}>
       <TouchableOpacity
         style={styles.mainActivityContainerAsideNavigationViewContainerRow}
-        onPress={() => goToActivity(navigation, 'FilesActionActivity')}
+        onPress={() => goToActivity(navigation, 'FilesActionActivity', {
+          filesAction: 'Открыть файл'
+        })}
       >
         <MaterialIcons name="smartphone" size={24} color="black" />
         <Text>
@@ -1336,8 +1393,8 @@ export function MainActivity({ navigation }) {
       </TouchableOpacity>
       <TouchableOpacity
         style={styles.mainActivityContainerAsideNavigationViewContainerRow}
-        onPress={() => {
-          // expo intent launcher
+        onPress={async () => {
+          await WebBrowser.openBrowserAsync('market://details?id=com.google.android.youtube')
         }}
       >
         <Entypo name="google-play" size={24} color="black" />
@@ -1547,7 +1604,7 @@ export function MainActivity({ navigation }) {
     }
   }
 
-  _getAllFilesInDirectory()
+  useEffect(() => _getAllFilesInDirectory(), [])
 
   return (
     <>
@@ -1630,11 +1687,7 @@ export function MainActivity({ navigation }) {
                 multiline
                 editable={isMainTextAreaEditable}
                 value={mainTextAreaContent}
-                ref={(ref) => {
-                  // console.log(`ref.selection: ${ref.selection.start}`)
-                }}
-                onSelectionChange={(event) => setMainTextAreaSelection(event.nativeEvent.selection)}
-                // selection={mainTextAreaSelection}
+                ref={(ref) => mainTextAreaRef = ref}
                 onChangeText={async (value) => {
                   await setMainTextAreaContent(value)
                   const updatedOpenedDocs = openedDocs
@@ -1665,7 +1718,9 @@ export function MainActivity({ navigation }) {
                   name="folder"
                   size={24}
                   color="black"
-                  onPress={() => goToActivity(navigation, 'FilesActionActivity')}  
+                  onPress={() => goToActivity(navigation, 'FilesActionActivity', {
+                    filesAction: 'Открыть файл'
+                  })}  
                 />
                 <MaterialIcons name="undo" size={24} color="black" />
                 <MaterialIcons name="redo" size={24} color="black" />
@@ -1783,21 +1838,21 @@ export function MainActivity({ navigation }) {
             <CheckBox
               isChecked={isFindDialogCaseMatch}
               onClick={() => {
-                isFindDialogCaseMatch = !isFindDialogCaseMatch
+                setIsFindDialogCaseMatch(!isFindDialogCaseMatch)
               }}
-              rightText={'Учитывать поиск'}
+              rightText={'Учитывать регистр'}
             />
             <CheckBox
               isChecked={isFindDialogRegex}
               onClick={() => {
-                isFindDialogRegex = !isFindDialogRegex
+                setIsFindDialogRegex(!isFindDialogRegex)
               }}
               rightText={'Регулярное выражение'}
             />
             <CheckBox
               isChecked={isFindDialogCycle}
               onClick={() => {
-                isFindDialogCycle = !isFindDialogCycle
+                setIsFindDialogCycle(!isFindDialogCycle)
               }}
               rightText={'Зациклить поиск'}
             />
@@ -1822,28 +1877,44 @@ export function MainActivity({ navigation }) {
             <Button
               title="Найти"
               onPress={() => {
-                // const isMatchFound = mainTextAreaContent.includes(findDialogSearchInput)
-                // if (isMatchFound) {
-                  // const findIndex = mainTextAreaContent.indexOf(findDialogSearchInput)
-                  // const isIndexExists = findIndex !== -1
-                  // if (isIndexExists) {
-                  //   const nextCharIndex = findIndex + 1
-                  //   setMainTextAreaSelection({
-                  //     start: findIndex,
-                  //     end: nextCharIndex
-                  //   })
-                  //   setIsFindDialogVisible(false)
-                  // } else {
-                  //   setIsFindDialogVisible(false)
-                  //   showToast(`Для \"${findDialogSearchInput}\" соответствий не найдено`)
-                  // }
-                // } else {
-                //   setIsFindDialogVisible(false)
-                //   showToast(`Для \"${findDialogSearchInput}\" соответствий не найдено`)
-                // }
-                // setIsFindDialogVisible(false)
-                // showToast(`Для \"${findDialogSearchInput}\" соответствий не найдено`)
-                showToast(`Для \"${findDialogSearchInput}\" соответствий не найдено`)
+                let textAreaContent = mainTextAreaContent
+                let searchInput = findDialogSearchInput
+                const isMatchFound = textAreaContent.toLowerCase().includes(searchInput.toLowerCase())
+                if (isMatchFound) {
+                  const isNotFindDialogCaseMatch = !isFindDialogCaseMatch
+                  if (isNotFindDialogCaseMatch) {
+                    textAreaContent = textAreaContent.toLowerCase()
+                    searchInput = searchInput.toLowerCase()
+                  }
+                  let findIndex = -1
+                  if (isFindDialogCaseMatch) {
+                    findIndex = textAreaContent.indexOf(searchInput)
+                  } else {
+                    findIndex = textAreaContent.search(new RegExp(`${searchInput}`,"g"))
+                  }
+                  const isIndexExists = findIndex !== -1
+                  if (isIndexExists) {
+                    const searchMsgLength = findDialogSearchInput.length
+                    const lastIndex = findIndex + searchMsgLength
+                    mainTextAreaRef.focus()
+                    mainTextAreaRef.setNativeProps({
+                      selection: {
+                        start: findIndex,
+                        end: lastIndex
+                      }
+                    })
+                    setIsFindDialogVisible(false)
+                  } else {
+                    setIsFindDialogVisible(false)
+                    showToast(`Для \"${findDialogSearchInput}\" соответствий не найдено`)
+                  }
+                } else {
+                  setIsFindDialogVisible(false)
+                  showToast(`Для \"${findDialogSearchInput}\" соответствий не найдено`)
+                }
+                setIsFindDialogVisible(false)
+                setFindDialogSearchInput('')
+                setIsMainActivityMoreContextMenuVisible(false)
               }}
             />
           </Dialog.Actions>
@@ -1876,7 +1947,15 @@ export function MainActivity({ navigation }) {
             <Button
               title="ОК"
               onPress={() => {
-                showToast(`ОК`)
+                const findIndex = mainTextAreaContent.indexOf('\n')
+                const lineIndex = findIndex + 1
+                mainTextAreaRef.focus()
+                mainTextAreaRef.setNativeProps({
+                  selection: {
+                    start: lineIndex,
+                    end: lineIndex
+                  }
+                })
                 setIsGoToStrokeDialogVisible(false)
               }}
             />
@@ -3401,7 +3480,9 @@ export function BookmarksActivity() {
   )
 }
 
-export function FilesActionActivity({ navigation }) {
+export function FilesActionActivity({ navigation, route }) {
+  
+  const { filesAction } = route.params
   
   const [docsList, setDocsList] = useState([])
 
@@ -3415,16 +3496,29 @@ export function FilesActionActivity({ navigation }) {
 
   const [isBookmarkFound, setIsBookmarkFound] = useState(false)
 
+  const [isSortFilesByMenuVisible, setIsSortFilesByMenuVisible] = useState(false)
+
+  const [sortFilesBy, setSortFilesBy] = useState('name')
+
+  const [isFilterEnabled, setIsFilterEnabled] = useState(false)
+
+  const goToActivity = (navigation, activityName, params = {}) => {
+    navigation.navigate(activityName, params)
+  }
+
   const showToast = (msg) => {
     ToastAndroid.show(msg, ToastAndroid.LONG)
   }
 
+  const getParsedDate = (millis) => {
+    const date = new Date()
+    date.setMilliseconds(millis)
+    const parsedDate = date.toLocaleDateString()
+    return parsedDate
+  }
+
   const toggleBookmark = () => {
     const iterableBookMarks = bookmarks
-    // const isBookmarkExists = iterableBookMarks.some((bookmark) => {
-    //   setIsBookmarkFound(true)
-    //   return bookmark.path === currentPath
-    // })
     const isBookmarkExists = isBookmarkFound
     if (isBookmarkExists) {
       let sqlStatement = `DELETE FROM \"bookmarks\" WHERE path=\"${currentPath}\";`
@@ -3438,6 +3532,33 @@ export function FilesActionActivity({ navigation }) {
       setIsAddBookmarkDialogVisible(true)
     }
   }
+
+  const _getAllFilesInDirectory = async() => {
+    // setDocsList([])
+    let dir = await FileSystem.readDirectoryAsync(FileSystem.cacheDirectory)
+    dir.forEach(async (val) => {
+      console.log(`FileSystem.cacheDirectory + val: ${FileSystem.cacheDirectory + val}`)
+      const fileUri = FileSystem.cacheDirectory + val
+      const content = await FileSystem.readAsStringAsync(fileUri, { encoding: FileSystem.EncodingType.UTF8 })
+      const info = await FileSystem.getInfoAsync(fileUri)
+      const fileUriParts = fileUri.split('/')
+      const fileUriPartsLength = fileUriParts.length
+      const lastFileUriPartIndex = fileUriPartsLength - 1
+      const fileName = fileUriParts[lastFileUriPartIndex]
+      const docInfo = {
+        content: content,
+        info: info,
+        name: fileName
+      }
+      docsList.push(docInfo)
+    })
+  }
+
+  navigation.setOptions({
+    title: filesAction
+  })
+
+  useEffect(() => _getAllFilesInDirectory(), [])
 
   db.transaction(transaction => {
     const sqlStatement = 'SELECT * FROM bookmarks;'
@@ -3477,6 +3598,7 @@ export function FilesActionActivity({ navigation }) {
           size={24}
           color="black"
           style={styles.filesActionAcitivityMenuItem}
+          onPress={() => setIsSortFilesByMenuVisible(true)}
         />
         {
           isBookmarkFound ?
@@ -3496,20 +3618,164 @@ export function FilesActionActivity({ navigation }) {
               onPress={() => toggleBookmark()}
             />
         }
-        <AntDesign
-          name="filter"
-          size={24}
-          color="black"
-          style={styles.filesActionAcitivityMenuItem}
-        />
+        {
+          isFilterEnabled ?
+            <Foundation
+              name="filter"
+              size={24}
+              color="black"
+              onPress={() => setIsFilterEnabled(!isFilterEnabled)}
+            />
+          :
+            <AntDesign
+              name="filter"
+              size={24}
+              color="black"
+              style={styles.filesActionAcitivityMenuItem}
+              onPress={() => setIsFilterEnabled(!isFilterEnabled)}
+            />  
+        }
+        <MaterialMenu.Menu
+          onRequestClose={() => setIsSortFilesByMenuVisible(false)}
+          visible={isSortFilesByMenuVisible}
+          style={styles.mainActivityHeaderRightItemMenu}
+        >
+          <MaterialMenu.MenuItem
+            onPress={() => {
+              setSortFilesBy('name')
+              setIsSortFilesByMenuVisible(false)
+            }}
+            style={styles.mainActivityHeaderRightItemMenuItem}
+          >
+            <Text>
+              По имени
+            </Text>
+          </MaterialMenu.MenuItem>
+          <MaterialMenu.MenuItem
+            onPress={() => {
+              setSortFilesBy('date')
+              setIsSortFilesByMenuVisible(false)
+            }}
+            style={styles.mainActivityHeaderRightItemMenuItem}
+          >
+            <Text>
+              По дате
+            </Text>
+          </MaterialMenu.MenuItem>
+        </MaterialMenu.Menu>
       </View>
     )
   })
   
+  useEffect(() => {
+    if (sortFilesBy === 'name') {
+      let sortedDocsList = docsList
+      sortedDocsList.sort((someDoc, anotherDoc) => {
+        if (someDoc.name > anotherDoc.name) {
+          return 1
+        } else if (someDoc.name < anotherDoc.name) {
+          return -1
+        }
+        return 0
+      })
+      setDocsList(sortedDocsList)
+    } else {
+      let sortedDocsList = docsList
+      sortedDocsList.sort((someDoc, anotherDoc) => {
+        if (someDoc.modificationTime > anotherDoc.modificationTime) {
+          return 1
+        } else if (someDoc.modificationTime < anotherDoc.modificationTime) {
+          return -1
+        }
+        return 0
+      })
+      setDocsList(sortedDocsList)
+    }
+  }, [sortFilesBy])
+
+  useEffect(() => {
+    if (isFilterEnabled) {
+      let filteredDocsList = docsList
+      filteredDocsList = filteredDocsList.filter((doc, docIndex) => {
+        const fileNameParts = doc.name.split('.')
+        const fileNamePartsLength = fileNameParts.length
+        const lastFileNamePartsIndex = fileNamePartsLength - 1
+        const fileExt = fileNameParts[lastFileNamePartsIndex]
+        const isTextExt = fileExt === 'txt'
+        return isTextExt
+      })
+      setDocsList(filteredDocsList)
+      showToast('Фильтр ВКЛ')
+    } else {
+      _getAllFilesInDirectory()
+      showToast('Фильтр ОТКЛ')
+    }
+  }, [isFilterEnabled])
+
   return (
     <>
       <ScrollView>
-        
+        {
+          docsList.map((doc, docIndex) => {
+            return (
+              <TouchableOpacity
+                key={docIndex}
+                style={styles.mainActivityContainerArticleNavigationViewContainerRow}
+                onPress={() => {
+                  console.log(`doc.info.uri: ${doc.info.uri}`)
+                  goToActivity(navigation, MainActivity, {
+                    fileUri: doc.info.uri
+                  })
+                }}
+              >
+                <View
+                  style={styles.mainActivityContainerArticleNavigationViewContainerRowAside}
+                >
+                  <Entypo
+                    name="folder"
+                    size={24}
+                    color="black"  
+                  />
+                  <View
+                    style={styles.mainActivityContainerArticleNavigationViewContainerRowAsideInfo}
+                  >
+                    <Text
+                      style={styles.mainActivityContainerArticleNavigationViewContainerRowAsideInfoName}
+                    >
+                      {
+                        doc.name
+                      }
+                    </Text>
+                    <View
+                      style={styles.mainActivityContainerArticleNavigationViewContainerRowAsideInfoFooter}
+                    >
+                      <Text
+                        style={styles.mainActivityContainerArticleNavigationViewContainerRowAsideInfoFooterSizeLabel}
+                      >
+                        {
+                          `${doc.info.size} байт`
+                        }
+                      </Text>
+                      <Text
+                        style={styles.mainActivityContainerArticleNavigationViewContainerRowAsideInfoFooterDateLabel}
+                      >
+                        {
+                          getParsedDate(doc.info.modificationTime)
+                        }
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+                <Feather
+                  name="more-vertical"
+                  size={24}
+                  color="black"
+                  style={styles.mainActivityHeaderRightItem}
+                />
+              </TouchableOpacity>
+            )
+          })
+        }
       </ScrollView>
       <Dialog
           visible={isAddBookmarkDialogVisible}
@@ -3560,25 +3826,267 @@ export function FilesActionActivity({ navigation }) {
   )
 }
 
-export function RecentFilesActivity() {
-  
+export function RecentOpenedFilesActivity() {
+
   const [docsList, setDocsList] = useState([])
-  
+
+  const getParsedDate = (millis) => {
+    const date = new Date()
+    date.setMilliseconds(millis)
+    const parsedDate = date.toLocaleDateString()
+    return parsedDate
+  }
+
+  const _getAllFilesInDirectory = async () => {
+    let dir = await FileSystem.readDirectoryAsync(FileSystem.cacheDirectory)
+    dir.forEach(async (val) => {
+      console.log(`FileSystem.cacheDirectory + val: ${FileSystem.cacheDirectory + val}`)
+      const fileUri = FileSystem.cacheDirectory + val
+      const content = await FileSystem.readAsStringAsync(fileUri, { encoding: FileSystem.EncodingType.UTF8 })
+      const info = await FileSystem.getInfoAsync(fileUri)
+      const fileUriParts = fileUri.split('/')
+      const fileUriPartsLength = fileUriParts.length
+      const lastFileUriPartIndex = fileUriPartsLength - 1
+      const fileName = fileUriParts[lastFileUriPartIndex]
+      const docInfo = {
+        content: content,
+        info: info,
+        name: fileName
+      }
+      const modificationTime = info.modificationTime
+      const currentDate = new Date()
+      const currentDateMillis = currentDate.getMilliseconds()
+      const currentDateMillisEarlier = currentDateMillis - 1000000
+      const isCanPush = modificationTime > currentDateMillisEarlier
+      if (isCanPush) {
+        docsList.push(docInfo)
+      }
+    })
+  }
+
+  useEffect(() => _getAllFilesInDirectory(), [])
+
   return (
-    <View>
-      <Text>
-        RecentFilesActivity
-      </Text>
-    </View>
+    <ScrollView
+      
+    >
+      {
+        docsList.map((doc, docIndex) => {
+          return (
+            <TouchableOpacity
+              key={docIndex}
+              style={styles.mainActivityContainerArticleNavigationViewContainerRow}
+            >
+              <View
+                style={styles.mainActivityContainerArticleNavigationViewContainerRowAside}
+              >
+                <Entypo
+                  name="folder"
+                  size={24}
+                  color="black"  
+                />
+                <View
+                  style={styles.mainActivityContainerArticleNavigationViewContainerRowAsideInfo}
+                >
+                  <Text
+                    style={styles.mainActivityContainerArticleNavigationViewContainerRowAsideInfoName}
+                  >
+                    {
+                      doc.name
+                    }
+                  </Text>
+                  <View
+                    style={styles.mainActivityContainerArticleNavigationViewContainerRowAsideInfoFooter}
+                  >
+                    <Text
+                      style={styles.mainActivityContainerArticleNavigationViewContainerRowAsideInfoFooterSizeLabel}
+                    >
+                      {
+                        `${doc.info.size} байт`
+                      }
+                    </Text>
+                    <Text
+                      style={styles.mainActivityContainerArticleNavigationViewContainerRowAsideInfoFooterDateLabel}
+                    >
+                      {
+                        getParsedDate(doc.info.modificationTime)
+                      }
+                    </Text>
+                  </View>
+                </View>
+              </View>
+              <Feather
+                name="more-vertical"
+                size={24}
+                color="black"
+                style={styles.mainActivityHeaderRightItem}
+              />
+            </TouchableOpacity>
+          )
+        })
+      }
+    </ScrollView>
   )
 }
 
-export function MemoryManagerActivity() {
+export function RecentAddedFilesActivity() {
+  
+  const [docsList, setDocsList] = useState([])
+
+  const getParsedDate = (millis) => {
+    const date = new Date()
+    date.setMilliseconds(millis)
+    const parsedDate = date.toLocaleDateString()
+    return parsedDate
+  }
+
+  const _getAllFilesInDirectory = async () => {
+    let dir = await FileSystem.readDirectoryAsync(FileSystem.cacheDirectory)
+    dir.forEach(async (val) => {
+      console.log(`FileSystem.cacheDirectory + val: ${FileSystem.cacheDirectory + val}`)
+      const fileUri = FileSystem.cacheDirectory + val
+      const content = await FileSystem.readAsStringAsync(fileUri, { encoding: FileSystem.EncodingType.UTF8 })
+      const info = await FileSystem.getInfoAsync(fileUri)
+      const fileUriParts = fileUri.split('/')
+      const fileUriPartsLength = fileUriParts.length
+      const lastFileUriPartIndex = fileUriPartsLength - 1
+      const fileName = fileUriParts[lastFileUriPartIndex]
+      const docInfo = {
+        content: content,
+        info: info,
+        name: fileName
+      }
+      const modificationTime = info.modificationTime
+      const currentDate = new Date()
+      const currentDateMillis = currentDate.getMilliseconds()
+      const currentDateMillisEarlier = currentDateMillis - 1000
+      const isCanPush = modificationTime > currentDateMillisEarlier
+      if (isCanPush) {
+        docsList.push(docInfo)
+      }
+    })
+  }
+  
+  useEffect(() => _getAllFilesInDirectory(), [])
+
   return (
-    <View>
-      <Text>
-        MemoryManagerActivity
-      </Text>
+    <ScrollView
+      
+    >
+      {
+        docsList.map((doc, docIndex) => {
+          return (
+            <TouchableOpacity
+              key={docIndex}
+              style={styles.mainActivityContainerArticleNavigationViewContainerRow}
+            >
+              <View
+                style={styles.mainActivityContainerArticleNavigationViewContainerRowAside}
+              >
+                <Entypo
+                  name="folder"
+                  size={24}
+                  color="black"  
+                />
+                <View
+                  style={styles.mainActivityContainerArticleNavigationViewContainerRowAsideInfo}
+                >
+                  <Text
+                    style={styles.mainActivityContainerArticleNavigationViewContainerRowAsideInfoName}
+                  >
+                    {
+                      doc.name
+                    }
+                  </Text>
+                  <View
+                    style={styles.mainActivityContainerArticleNavigationViewContainerRowAsideInfoFooter}
+                  >
+                    <Text
+                      style={styles.mainActivityContainerArticleNavigationViewContainerRowAsideInfoFooterSizeLabel}
+                    >
+                      {
+                        `${doc.info.size} байт`
+                      }
+                    </Text>
+                    <Text
+                      style={styles.mainActivityContainerArticleNavigationViewContainerRowAsideInfoFooterDateLabel}
+                    >
+                      {
+                        getParsedDate(doc.info.modificationTime)
+                      }
+                    </Text>
+                  </View>
+                </View>
+              </View>
+              <Feather
+                name="more-vertical"
+                size={24}
+                color="black"
+                style={styles.mainActivityHeaderRightItem}
+              />
+            </TouchableOpacity>
+          )
+        })
+      }
+    </ScrollView>
+  )
+}
+
+export function RecentFilesActivity() {
+  
+  const layout = useWindowDimensions()
+
+  const renderScene = SceneMap({
+    first: RecentOpenedFilesActivity,
+    second: RecentAddedFilesActivity
+  })
+
+  const [index, setIndex] = React.useState(0);
+  const [routes] = React.useState([
+    { key: 'first', title: 'Недавно открытые' },
+    { key: 'second', title: 'Недавно добавленные' }
+  ])
+
+  return (
+    <TabView
+      navigationState={{ index, routes }}
+      renderScene={renderScene}
+      onIndexChange={setIndex}
+      initialLayout={{ width: layout.width }}
+    />
+  )
+}
+
+export function MemoryManagerActivity({ navigation }) {
+  
+  const goToActivity = (navigation, activityName, params = {}) => {
+    navigation.navigate(activityName, params)
+  }
+  
+  return (
+    <View
+      style={styles.memoryManagerActivityContainer}
+    >
+      <TouchableOpacity
+        style={styles.memoryManagerActivityContainerInternalStorage}
+        onPress={() => goToActivity(navigation, 'MainActivity')}
+      >
+        <MaterialIcons name="smartphone" size={24} color="black" />
+        <View
+          style={styles.memoryManagerActivityContainerInternalStorageAside}
+        >
+          <Text
+            style={styles.memoryManagerActivityContainerInternalStorageAsideNameLabel}
+          >
+            Внутренняя память
+          </Text>
+          <Text
+            style={styles.memoryManagerActivityContainerInternalStorageAsidePathLabel}
+          >
+            /storage/emulated/0
+          </Text>
+        </View>
+      </TouchableOpacity>
     </View>
   )
 }
@@ -3799,5 +4307,19 @@ const styles = StyleSheet.create({
   },
   saveDialogScrollBody: {
     maxHeight: 150
+  },
+  memoryManagerActivityContainerInternalStorage: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  memoryManagerActivityContainerInternalStorageAside: {
+    marginLeft: 25
+  },
+  memoryManagerActivityContainerInternalStorageAsideNameLabel: {
+    fontSize: 16
+  },
+  memoryManagerActivityContainerInternalStorageAsidePathLabel: {
+    color: 'rgb(200, 200, 200)'
   }
 })
