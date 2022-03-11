@@ -10,7 +10,8 @@ import {
   Dialog,
   Portal,
   Provider,
-  RadioButton
+  RadioButton,
+  FAB 
 } from 'react-native-paper'
 import * as MaterialMenu from 'react-native-material-menu'
 import { setStatusBarBackgroundColor } from 'expo-status-bar'
@@ -725,6 +726,40 @@ export function MainActivity({ navigation, route }) {
 
   const [isInsertTimeStampDialogVisible, setIsInsertTimeStampDialogVisible] = useState(false)
 
+  const [timeStamp, setTimeStamp] = useState({
+    checked: ''
+  })
+  
+  const [timeStamps, setTimeStamps] = useState([
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    ''
+  ])
+
+  const monthLabels = {
+    '1': 'янв.',
+    '2': 'фев.',
+    '3': 'мар.',
+    '4': 'апр.',
+    '5': 'мая',
+    '6': 'июн.',
+    '7': 'июл.',
+    '8': 'авг.',
+    '9': 'сен.',
+    '10': 'окт.',
+    '11': 'ноя.',
+    '12': 'дек.'
+  }
+
   const [isToolBarEnabled, setIsToolBarEnabled] = useState(true)
 
   const _pickDocument = async () => {
@@ -1019,7 +1054,69 @@ export function MainActivity({ navigation, route }) {
           >
             <TouchableOpacity
               style={styles.mainActivityHeaderRightItemMenuItemRow}
-              onPress={() => setIsInsertTimeStampDialogVisible(true)}
+              onPress={() => {
+                setIsMainActivityPenContextMenuVisible(false)
+                setIsInsertTimeStampDialogVisible(true)
+                const currentDate = new Date()
+                let currentDateDay = currentDate.getDate()
+                const currentDateMonthIndex = currentDate.getMonth()
+                let currentDateMonth = currentDateMonthIndex + 1
+                const currentDateYear = currentDate.getFullYear()
+                let currentDateHours = currentDate.getHours()
+                let currentDateMinutes = currentDate.getMinutes()
+                let currentDateSeconds = currentDate.getSeconds()
+                const currentDateAmPm = currentDateHours >= 12 ? 'PM' : 'AM'
+                let currentDateTimeZoneOffset = currentDate.getTimezoneOffset()
+                currentDateTimeZoneOffset = currentDateTimeZoneOffset / 60
+                const currentDateMonthLabel = monthLabels[currentDateMonth]
+                let isAddPrefix = currentDateDay <= 9
+                if (isAddPrefix) {
+                  currentDateDay = `0${currentDateDay}`
+                }
+                isAddPrefix = currentDateMonth <= 9
+                if (isAddPrefix) {
+                  currentDateMonth = `0${currentDateMonth}`
+                }
+                isAddPrefix = currentDateHours <= 9
+                if (isAddPrefix) {
+                  currentDateHours = `0${currentDateHours}`
+                }
+                isAddPrefix = currentDateMinutes <= 9
+                if (isAddPrefix) {
+                  currentDateMinutes = `0${currentDateMinutes}`
+                }
+                isAddPrefix = currentDateSeconds <= 9
+                if (isAddPrefix) {
+                  currentDateSeconds = `0${currentDateSeconds}`
+                }
+                const firstTimeStampFirstFormat = `${currentDateYear}/${currentDateMonth}/${currentDateDay} ${currentDateHours}:${currentDateMinutes}`
+                const firstTimeStampSecondFormat = `${currentDateYear}/${currentDateMonth}/${currentDateDay} ${currentDateHours}:${currentDateMinutes} ${currentDateAmPm}`
+                const firstTimeStampThirdFormat = `${currentDateYear}/${currentDateMonth}/${currentDateDay} ${currentDateHours}:${currentDateMinutes}:${currentDateSeconds} GMT ${currentDateTimeZoneOffset}`
+                const secondTimeStampFirstFormat = `${currentDateMonth}/${currentDateDay}/${currentDateYear} ${currentDateHours}:${currentDateMinutes}`
+                const secondTimeStampSecondFormat = `${currentDateMonth}/${currentDateDay}/${currentDateYear} ${currentDateHours}:${currentDateMinutes} ${currentDateAmPm}`
+                const secondTimeStampThirdFormat = `${currentDateMonth}/${currentDateDay}/${currentDateYear} ${currentDateHours}:${currentDateMinutes}:${currentDateSeconds} GMT ${currentDateTimeZoneOffset}`
+                const thirdTimeStampFirstFormat = `${currentDateMonthLabel}/${currentDateDay}/${currentDateYear} ${currentDateHours}:${currentDateMinutes}`
+                const thirdTimeStampSecondFormat = `${currentDateMonthLabel}/${currentDateDay}/${currentDateYear} ${currentDateHours}:${currentDateMinutes} ${currentDateAmPm}`
+                const thirdTimeStampThirdFormat = `${currentDateMonthLabel}/${currentDateDay}/${currentDateYear} ${currentDateHours}:${currentDateMinutes}:${currentDateSeconds} GMT ${currentDateTimeZoneOffset}`
+                const fourthTimeStampFirstFormat = `${currentDateDay}/${currentDateMonthLabel}/${currentDateYear} ${currentDateHours}:${currentDateMinutes}`
+                const fourthTimeStampSecondFormat = `${currentDateDay}/${currentDateMonthLabel}/${currentDateYear} ${currentDateHours}:${currentDateMinutes} ${currentDateAmPm}`
+                const fourthTimeStampThirdFormat = `${currentDateDay}/${currentDateMonthLabel}/${currentDateYear} ${currentDateHours}:${currentDateMinutes}:${currentDateSeconds} GMT ${currentDateTimeZoneOffset}`
+                const updatedTimeStamps = [
+                  firstTimeStampFirstFormat,
+                  firstTimeStampSecondFormat,
+                  firstTimeStampThirdFormat,
+                  secondTimeStampFirstFormat,
+                  secondTimeStampSecondFormat,
+                  secondTimeStampThirdFormat,
+                  thirdTimeStampFirstFormat,
+                  thirdTimeStampSecondFormat,
+                  thirdTimeStampThirdFormat,
+                  fourthTimeStampFirstFormat,
+                  fourthTimeStampSecondFormat,
+                  fourthTimeStampThirdFormat
+                ]
+                setTimeStamps(updatedTimeStamps)
+              }}
             >
               <MaterialIcons name="access-time" size={24} color="black" />
               <Text
@@ -1786,32 +1883,226 @@ export function MainActivity({ navigation, route }) {
             Вставить временную метку
           </Dialog.Title>
           <Dialog.Content>
-            <Text>
-              Количество символов
-            </Text>
-            <Text>
-              qwe
-            </Text>
-            <Text>
-              Количество слов
-            </Text>
-            <Text>
-              asd
-            </Text>
+            <View
+              style={styles.dialogContentRow}
+            >
+              <RadioButton
+                value={timeStamps[0]}
+                label={timeStamps[0]}
+                status={timeStamp.checked === timeStamps[0] ? 'checked' : 'unchecked'}
+                onPress={() => { setTimeStamp({ checked: timeStamps[0] }) }}
+              />
+              <Text
+                style={styles.dialogContentRowLabel}
+              >
+                {
+                  timeStamps[0]
+                }
+              </Text>
+            </View>
+            <View
+              style={styles.dialogContentRow}
+            >
+              <RadioButton
+                value={timeStamps[1]}
+                label={timeStamps[1]}
+                status={timeStamp.checked === timeStamps[1] ? 'checked' : 'unchecked'}
+                onPress={() => { setTimeStamp({ checked: timeStamps[1] }) }}
+              />
+              <Text
+                style={styles.dialogContentRowLabel}
+              >
+                {
+                  timeStamps[1]
+                }
+              </Text>
+            </View>
+            <View
+              style={styles.dialogContentRow}
+            >
+              <RadioButton
+                value={timeStamps[2]}
+                label={timeStamps[2]}
+                status={timeStamp.checked === timeStamps[2] ? 'checked' : 'unchecked'}
+                onPress={() => { setTimeStamp({ checked: timeStamps[2] }) }}
+              />
+              <Text
+                style={styles.dialogContentRowLabel}
+              >
+                {
+                  timeStamps[2]
+                }
+              </Text>
+            </View>
+            <View
+              style={styles.dialogContentRow}
+            >
+              <RadioButton
+                value={timeStamps[3]}
+                label={timeStamps[3]}
+                status={timeStamp.checked === timeStamps[3] ? 'checked' : 'unchecked'}
+                onPress={() => { setTimeStamp({ checked: timeStamps[3] }) }}
+              />
+              <Text
+                style={styles.dialogContentRowLabel}
+              >
+                {
+                  timeStamps[3]
+                }
+              </Text>
+            </View>
+            <View
+              style={styles.dialogContentRow}
+            >
+              <RadioButton
+                value={timeStamps[4]}
+                label={timeStamps[4]}
+                status={timeStamp.checked === timeStamps[4] ? 'checked' : 'unchecked'}
+                onPress={() => { setTimeStamp({ checked: timeStamps[4] }) }}
+              />
+              <Text
+                style={styles.dialogContentRowLabel}
+              >
+                {
+                  timeStamps[4]
+                }
+              </Text>
+            </View>
+            <View
+              style={styles.dialogContentRow}
+            >
+              <RadioButton
+                value={timeStamps[5]}
+                label={timeStamps[5]}
+                status={timeStamp.checked === timeStamps[5] ? 'checked' : 'unchecked'}
+                onPress={() => { setTimeStamp({ checked: timeStamps[5] }) }}
+              />
+              <Text
+                style={styles.dialogContentRowLabel}
+              >
+                {
+                  timeStamps[5]
+                }
+              </Text>
+            </View>
+            <View
+              style={styles.dialogContentRow}
+            >
+              <RadioButton
+                value={timeStamps[6]}
+                label={timeStamps[6]}
+                status={timeStamp.checked === timeStamps[6] ? 'checked' : 'unchecked'}
+                onPress={() => { setTimeStamp({ checked: timeStamps[6] }) }}
+              />
+              <Text
+                style={styles.dialogContentRowLabel}
+              >
+                {
+                  timeStamps[6]
+                }
+              </Text>
+            </View>
+            <View
+              style={styles.dialogContentRow}
+            >
+              <RadioButton
+                value={timeStamps[7]}
+                label={timeStamps[7]}
+                status={timeStamp.checked === timeStamps[7] ? 'checked' : 'unchecked'}
+                onPress={() => { setTimeStamp({ checked: timeStamps[7] }) }}
+              />
+              <Text
+                style={styles.dialogContentRowLabel}
+              >
+                {
+                  timeStamps[7]
+                }
+              </Text>
+            </View>
+            <View
+              style={styles.dialogContentRow}
+            >
+              <RadioButton
+                value={timeStamps[8]}
+                label={timeStamps[8]}
+                status={timeStamp.checked === timeStamps[8] ? 'checked' : 'unchecked'}
+                onPress={() => { setTimeStamp({ checked: timeStamps[8] }) }}
+              />
+              <Text
+                style={styles.dialogContentRowLabel}
+              >
+                {
+                  timeStamps[8]
+                }
+              </Text>
+            </View>
+            <View
+              style={styles.dialogContentRow}
+            >
+              <RadioButton
+                value={timeStamps[9]}
+                label={timeStamps[9]}
+                status={timeStamp.checked === timeStamps[9] ? 'checked' : 'unchecked'}
+                onPress={() => { setTimeStamp({ checked: timeStamps[9] }) }}
+              />
+              <Text
+                style={styles.dialogContentRowLabel}
+              >
+                {
+                  timeStamps[9]
+                }
+              </Text>
+            </View>
+            <View
+              style={styles.dialogContentRow}
+            >
+              <RadioButton
+                value={timeStamps[10]}
+                label={timeStamps[10]}
+                status={timeStamp.checked === timeStamps[10] ? 'checked' : 'unchecked'}
+                onPress={() => { setTimeStamp({ checked: timeStamps[10] }) }}
+              />
+              <Text
+                style={styles.dialogContentRowLabel}
+              >
+                {
+                  timeStamps[10]
+                }
+              </Text>
+            </View>
+            <View
+              style={styles.dialogContentRow}
+            >
+              <RadioButton
+                value={timeStamps[11]}
+                label={timeStamps[11]}
+                status={timeStamp.checked === timeStamps[11] ? 'checked' : 'unchecked'}
+                onPress={() => { setTimeStamp({ checked: timeStamps[11] }) }}
+              />
+              <Text
+                style={styles.dialogContentRowLabel}
+              >
+                {
+                  timeStamps[11]
+                }
+              </Text>
+            </View>
           </Dialog.Content>
           <Dialog.Actions>
             <Button
               title="ОТМЕНА"
               onPress={() => {
-                showToast(`ОТМЕНА`)
                 setIsInsertTimeStampDialogVisible(false)
               }}
             />
             <Button
               title="ОК"
               onPress={() => {
-                showToast(`ОК`)
                 setIsInsertTimeStampDialogVisible(false)
+                let updatedMainTextAreaContent = mainTextAreaContent
+                const checkedTimeStamp = timeStamp.checked
+                updatedMainTextAreaContent = `${updatedMainTextAreaContent}${checkedTimeStamp}`
+                setMainTextAreaContent(updatedMainTextAreaContent)
               }}
             />
           </Dialog.Actions>
@@ -3502,6 +3793,9 @@ export function FilesActionActivity({ navigation, route }) {
 
   const [isFilterEnabled, setIsFilterEnabled] = useState(false)
 
+  const [open, setOpen] = useState(false)
+  // const open = true
+
   const goToActivity = (navigation, activityName, params = {}) => {
     navigation.navigate(activityName, params)
   }
@@ -3777,6 +4071,45 @@ export function FilesActionActivity({ navigation, route }) {
           })
         }
       </ScrollView>
+      <FAB.Group
+        style={styles.fab}
+        icon={
+          open ?
+            'close'
+          :
+            'plus'
+        }
+        open={open}
+        color={"#333366"}
+        actions={[
+          {
+            icon: 'plus',
+            label: 'Создать файл',
+            labelStyle: styles.fabGrounpLabelStyle,
+            labelTextColor: 'rgb(255, 255, 255)',
+            onPress: () => console.log('Создать файл')
+          },
+          {
+            icon: 'plus',
+            label: 'Создать папку',
+            labelStyle: styles.fabGrounpLabelStyle,
+            labelTextColor: 'rgb(255, 255, 255)',
+            onPress: () => console.log('Создать папку'),
+          },
+          {
+            icon: 'email',
+            label: 'Сохранить как',
+            labelStyle: styles.fabGrounpLabelStyle,
+            labelTextColor: 'rgb(255, 255, 255)',
+            onPress: () => console.log('Сохранить как'),
+          }
+        ]}
+        onStateChange={() => console.log('onStateChange')}
+        onPress={() => {
+          console.log('Pressed')
+          setOpen(!open)
+        }}
+      />
       <Dialog
           visible={isAddBookmarkDialogVisible}
           onDismiss={() => setIsAddBookmarkDialogVisible(false)}>
@@ -4059,35 +4392,99 @@ export function RecentFilesActivity() {
 
 export function MemoryManagerActivity({ navigation }) {
   
+  const [open, setOpen] = useState(false)
+
   const goToActivity = (navigation, activityName, params = {}) => {
     navigation.navigate(activityName, params)
   }
   
   return (
-    <View
-      style={styles.memoryManagerActivityContainer}
-    >
-      <TouchableOpacity
-        style={styles.memoryManagerActivityContainerInternalStorage}
-        onPress={() => goToActivity(navigation, 'MainActivity')}
+    <>
+      <View
+        style={styles.memoryManagerActivityContainer}
       >
-        <MaterialIcons name="smartphone" size={24} color="black" />
-        <View
-          style={styles.memoryManagerActivityContainerInternalStorageAside}
+        <TouchableOpacity
+          style={styles.memoryManagerActivityContainerInternalStorage}
+          onPress={() => goToActivity(navigation, 'MainActivity')}
         >
-          <Text
-            style={styles.memoryManagerActivityContainerInternalStorageAsideNameLabel}
+          <MaterialIcons name="smartphone" size={24} color="black" />
+          <View
+            style={styles.memoryManagerActivityContainerInternalStorageAside}
           >
-            Внутренняя память
-          </Text>
-          <Text
-            style={styles.memoryManagerActivityContainerInternalStorageAsidePathLabel}
-          >
-            /storage/emulated/0
-          </Text>
-        </View>
-      </TouchableOpacity>
-    </View>
+            <Text
+              style={styles.memoryManagerActivityContainerInternalStorageAsideNameLabel}
+            >
+              Внутренняя память
+            </Text>
+            <Text
+              style={styles.memoryManagerActivityContainerInternalStorageAsidePathLabel}
+            >
+              /storage/emulated/0
+            </Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+      <FAB.Group
+        style={styles.fab}
+        icon={
+          open ?
+            'close'
+          :
+            'plus'
+        }
+        open={open}
+        color={"#333366"}
+        actions={[
+          {
+            icon: 'plus',
+            label: 'FTP/FTPS/SFTP',
+            labelStyle: styles.fabGrounpLabelStyle,
+            labelTextColor: 'rgb(255, 255, 255)',
+            onPress: () => console.log('FTP/FTPS/SFTP')
+          },
+          {
+            icon: 'plus',
+            label: 'WebDAV',
+            labelStyle: styles.fabGrounpLabelStyle,
+            labelTextColor: 'rgb(255, 255, 255)',
+            onPress: () => console.log('WebDAV'),
+          },
+          {
+            icon: 'email',
+            label: 'Google Drive',
+            labelStyle: styles.fabGrounpLabelStyle,
+            labelTextColor: 'rgb(255, 255, 255)',
+            onPress: () => console.log('Google Drive'),
+          },
+          {
+            icon: 'email',
+            label: 'OneDrive',
+            labelStyle: styles.fabGrounpLabelStyle,
+            labelTextColor: 'rgb(255, 255, 255)',
+            onPress: () => console.log('OneDrive'),
+          },
+          {
+            icon: 'email',
+            label: 'GitHub',
+            labelStyle: styles.fabGrounpLabelStyle,
+            labelTextColor: 'rgb(255, 255, 255)',
+            onPress: () => console.log('GitHub'),
+          },
+          {
+            icon: 'email',
+            label: 'GitLab',
+            labelStyle: styles.fabGrounpLabelStyle,
+            labelTextColor: 'rgb(255, 255, 255)',
+            onPress: () => console.log('GitLab'),
+          }
+        ]}
+        onStateChange={() => console.log('onStateChange')}
+        onPress={() => {
+          console.log('Pressed')
+          setOpen(!open)
+        }}
+      />
+    </>
   )
 }
 
@@ -4321,5 +4718,15 @@ const styles = StyleSheet.create({
   },
   memoryManagerActivityContainerInternalStorageAsidePathLabel: {
     color: 'rgb(200, 200, 200)'
+  },
+  fab: {
+    position: 'absolute',
+    margin: 16,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0)'
+  },
+  fabGrounpLabelStyle: {
+    backgroundColor: 'rgb(150, 150, 150)'
   }
 })
