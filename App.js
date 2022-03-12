@@ -11,7 +11,8 @@ import {
   Portal,
   Provider,
   RadioButton,
-  FAB 
+  FAB,
+  ProgressBar
 } from 'react-native-paper'
 import * as MaterialMenu from 'react-native-material-menu'
 import { setStatusBarBackgroundColor } from 'expo-status-bar'
@@ -22,6 +23,7 @@ import * as IntentLauncher from 'expo-intent-launcher'
 // import { startActivityAsync, ActivityAction } from 'expo-intent-launcher'
 import * as WebBrowser from 'expo-web-browser'
 import * as DocumentPicker from 'expo-document-picker'
+import Slider from '@react-native-community/slider'
 
 const Stack = createNativeStackNavigator()
 
@@ -499,7 +501,10 @@ export default function App() {
                   >
                     <TouchableOpacity
                       style={styles.mainActivityHeaderRightItemMenuItemRow}
-                      onPress={() => setIsStyleDialogVisible(true)}
+                      onPress={() => {
+                        setIsMainActivityMoreContextMenuVisible(false)
+                        setIsStyleDialogVisible(true)
+                      }}
                     >
                       <AntDesign name="picture" size={24} color="black" />
                       <Text
@@ -518,7 +523,10 @@ export default function App() {
                   >
                     <TouchableOpacity
                       style={styles.mainActivityHeaderRightItemMenuItemRow}
-                      onPress={() => setIsStatisticsDialogVisible(true)}
+                      onPress={() => {
+                        setIsMainActivityMoreContextMenuVisible(false)
+                        setIsStatisticsDialogVisible(true)
+                      }}
                     >
                       <Ionicons name="ios-stats-chart-sharp" size={24} color="black" />
                       <Text
@@ -653,6 +661,8 @@ export function MainActivity({ navigation, route }) {
 
   const [mainTextAreaContent, setMainTextAreaContent] = useState('')
 
+  const [isDetectChanges, setIsDetectChanges] = useState(false)
+
   var mainTextAreaRef = useRef(null)
 
   const [isMainTextAreaEditable, setIsMainTextAreaEditable] = useState(true)
@@ -716,12 +726,6 @@ export function MainActivity({ navigation, route }) {
 
   const [savedFileName, setSavedFileName] = useState('Безымянный.txt')
 
-  // const [hue, setHue] = useState(null)
-
-  // const [colorVal, setColorVal] = useState(null)
-  
-  // const [saturation, setSaturation] = useState(null)
-
   const [color, setColor] = useState('') 
 
   const [isInsertTimeStampDialogVisible, setIsInsertTimeStampDialogVisible] = useState(false)
@@ -759,6 +763,10 @@ export function MainActivity({ navigation, route }) {
     '11': 'ноя.',
     '12': 'дек.'
   }
+
+  const [isAcceptSaveDialogVisible, setIsAcceptSaveDialogVisible] = useState(false)
+
+  const [isAcceptExitDialogVisible, setIsAcceptExitDialogVisible] = useState(false)
 
   const [isToolBarEnabled, setIsToolBarEnabled] = useState(true)
 
@@ -1278,7 +1286,10 @@ export function MainActivity({ navigation, route }) {
           >
             <TouchableOpacity
               style={styles.mainActivityHeaderRightItemMenuItemRow}
-              onPress={() => setIsStyleDialogVisible(true)}
+              onPress={() => {
+                setIsMainActivityMoreContextMenuVisible(false)
+                setIsStyleDialogVisible(true)
+              }}
             >
               <AntDesign name="picture" size={24} color="black" />
               <Text
@@ -1297,7 +1308,10 @@ export function MainActivity({ navigation, route }) {
           >
             <TouchableOpacity
               style={styles.mainActivityHeaderRightItemMenuItemRow}
-              onPress={() => setIsStatisticsDialogVisible(true)}
+              onPress={() => {
+                setIsMainActivityMoreContextMenuVisible(false)
+                setIsStatisticsDialogVisible(true)
+              }}
             >
               <Ionicons name="ios-stats-chart-sharp" size={24} color="black" />
               <Text
@@ -1614,6 +1628,7 @@ export function MainActivity({ navigation, route }) {
 
   const _getAllFilesInDirectory = async() => {
     let dir = await FileSystem.readDirectoryAsync(FileSystem.cacheDirectory)
+    // let dirs = await FileSystem.readDirectoryAsync(FileSystem.cacheDirectory)
     dir.forEach(async (val) => {
       console.log(`FileSystem.cacheDirectory + val: ${FileSystem.cacheDirectory + val}`)
       const fileUri = FileSystem.cacheDirectory + val
@@ -1653,35 +1668,35 @@ export function MainActivity({ navigation, route }) {
 
   const getCustomStyle = () => {
     let backgroundColor = ''
-    if (styleType === 'Стандартная') {
+    if (styleType.checked === 'Стандартная') {
       backgroundColor = 'rgb(255, 255, 255)' 
-    } else if (styleType === 'GitHub') {
+    } else if (styleType.checked === 'GitHub') {
       backgroundColor = 'rgb(250, 250, 250)'
-    } else if (styleType === 'GitHubv2') {
+    } else if (styleType.checked === 'GitHubv2') {
       backgroundColor = 'rgb(245, 245, 245)'
-    } else if (styleType === 'Tomorrow') {
+    } else if (styleType.checked === 'Tomorrow') {
       backgroundColor = 'rgb(240, 240, 240)'
-    } else if (styleType === 'Hemisu') {
+    } else if (styleType.checked === 'Hemisu') {
       backgroundColor = 'rgb(235, 235, 235)'
-    } else if (styleType === 'AtelierCave') {
+    } else if (styleType.checked === 'AtelierCave') {
       backgroundColor = 'rgb(230, 230, 230)'
-    } else if (styleType === 'AtelierDune') {
+    } else if (styleType.checked === 'AtelierDune') {
       backgroundColor = 'rgb(225, 225, 225)'
-    } else if (styleType === 'AtelierEstuary') {
+    } else if (styleType.checked === 'AtelierEstuary') {
       backgroundColor = 'rgb(220, 220, 220)'
-    } else if (styleType === 'AtelierForest') {
+    } else if (styleType.checked === 'AtelierForest') {
       backgroundColor = 'rgb(215, 215, 215)'
-    } else if (styleType === 'AtelierHeath') {
+    } else if (styleType.checked === 'AtelierHeath') {
       backgroundColor = 'rgb(210, 210, 210)'
-    } else if (styleType === 'AtelierLakeside') {
+    } else if (styleType.checked === 'AtelierLakeside') {
       backgroundColor = 'rgb(205, 205, 205)'
-    } else if (styleType === 'AtelierPlateau') {
+    } else if (styleType.checked === 'AtelierPlateau') {
       backgroundColor = 'rgb(200, 200, 200)'
-    } else if (styleType === 'AtelierSavanna') {
+    } else if (styleType.checked === 'AtelierSavanna') {
       backgroundColor = 'rgb(195, 195, 195)'
-    } else if (styleType === 'AtelierSeaside') {
+    } else if (styleType.checked === 'AtelierSeaside') {
       backgroundColor = 'rgb(190, 190, 190)'
-    } else if (styleType === 'AtelierSulphurpool') {
+    } else if (styleType.checked === 'AtelierSulphurpool') {
       backgroundColor = 'rgb(185, 185, 185)'
     }
     return {
@@ -1702,6 +1717,14 @@ export function MainActivity({ navigation, route }) {
   }
 
   useEffect(() => _getAllFilesInDirectory(), [])
+
+  BackHandler.addEventListener('hardwareBackPress', function () {
+    if (isDetectChanges) {
+      setIsAcceptExitDialogVisible(true)
+      return true
+    }
+    return false
+  })
 
   return (
     <>
@@ -1790,6 +1813,7 @@ export function MainActivity({ navigation, route }) {
                   const updatedOpenedDocs = openedDocs
                   updatedOpenedDocs[activeOpenedDocIndex].content = value
                   setOpenedDocs(updatedOpenedDocs)
+                  setIsDetectChanges(true)
                 }}
                 onContentSizeChange={(e) => {
                   const nativeEvent = e.nativeEvent
@@ -1830,10 +1854,33 @@ export function MainActivity({ navigation, route }) {
                 <Ionicons
                   name="ios-save"
                   size={24}
-                  color="black"
-                  onPress={() => setIsSaveDialogVisible(true)}
+                  color={
+                    isDetectChanges ?
+                      'rgb(0, 0, 0)'
+                    :
+                      'rgb(200, 200, 200)'
+                  }
+                  onPress={() => {
+                    if (isDetectChanges) {
+                      setIsSaveDialogVisible(true)
+                    }
+                  }}
                 />
-                <Entypo name="cross" size={24} color="black" />
+                <Entypo
+                  name="cross"
+                  size={24}
+                  color={
+                    isDetectChanges ?
+                      'rgb(0, 0, 0)'
+                    :
+                      'rgb(200, 200, 200)'
+                  }
+                  onPress={() => {
+                    if (isDetectChanges) {
+                      setIsAcceptSaveDialogVisible(true)
+                    }
+                  }}
+                />
               </View>
             :
               <View>
@@ -2563,7 +2610,6 @@ export function MainActivity({ navigation, route }) {
             <Button
               title="ОТМЕНА"
               onPress={() => {
-                showToast(`ОТМЕНА`)
                 setIsStyleDialogVisible(false)
               }}
             />
@@ -2721,6 +2767,98 @@ export function MainActivity({ navigation, route }) {
             />
           </Dialog.Actions>
         </Dialog>
+        <Dialog
+          visible={isAcceptExitDialogVisible}
+          onDismiss={() => setIsAcceptExitDialogVisible(false)}>
+          <Dialog.Title>
+            Выход
+          </Dialog.Title>
+          <Dialog.Content>
+            <Text>
+              {
+                'Следующие файлы содержат\nнесохраненные изменения. Вы\nхотите сохранить их?'
+              }
+            </Text>
+            <View
+              style={styles.mainActivityContainerArticleNavigationViewContainerRowAside}
+            >
+              <Entypo
+                name="folder"
+                size={24}
+                color="black"  
+              />
+              <View
+                style={styles.mainActivityContainerArticleNavigationViewContainerRowAsideInfo}
+              >
+                <Text
+                  style={styles.mainActivityContainerArticleNavigationViewContainerRowAsideInfoName}
+                >
+                  {
+                    'Безымянный.txt'
+                  }
+                </Text>
+              </View>
+            </View>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button
+              title="Выход"
+              onPress={() => {
+                showToast(`Выход`)
+                setIsAcceptExitDialogVisible(false)
+                BackHandler.exitApp()
+              }}
+            />
+            <Button
+              title="Позже"
+              onPress={() => {
+                setIsAcceptExitDialogVisible(false)
+              }}
+            />
+            <Button
+              title="Сохранить"
+              onPress={() => {
+                setIsAcceptExitDialogVisible(false)
+                setIsSaveDialogVisible(true)
+              }}
+            />
+          </Dialog.Actions>
+        </Dialog>
+        <Dialog
+          visible={isAcceptSaveDialogVisible}
+          onDismiss={() => setIsAcceptSaveDialogVisible(false)}>
+          <Dialog.Title>
+            Сохранить
+          </Dialog.Title>
+          <Dialog.Content>
+            <Text>
+              Вы хотите сохранить изменения
+            </Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button
+              title="Нет"
+              onPress={() => {
+                setIsDetectChanges(false)
+                setMainTextAreaContent('')
+                setIsAcceptSaveDialogVisible(false)
+              }}
+            />
+            <Button
+              title="ОТМЕНА"
+              onPress={() => {
+                setIsAcceptSaveDialogVisible(false)
+              }}
+            />
+            <Button
+              title="ДА"
+              onPress={() => {
+                setIsAcceptSaveDialogVisible(false)
+                setIsSaveDialogVisible(true)
+              }}
+            />
+          </Dialog.Actions>
+        </Dialog>
       </DrawerLayoutAndroid>
     </>
   )
@@ -2728,554 +2866,1335 @@ export function MainActivity({ navigation, route }) {
 
 export function SettingsActivity() {
   
+  const [isLanguageDialogVisible, setIsLanguageDialogVisible] = useState(false)
+
+  const [language, setLanguage] = useState({
+    checked: 'Авто (По умолчанию)'
+  })
+
+  const [isEncodingDialogVisible, setIsEncodingDialogVisible] = useState(false)
+
+  const [encodingType, setEncodingType] = useState({
+    checked: 'UTF-8'
+  })
+
+  const [isBreakLineDialogVisible, setIsBreakLineDialogVisible] = useState(false)
+
+  const [breakLine, setBreakLine] = useState({
+    checked: 'Авто (По умолчанию)'
+  })
+
+  const [paragraphCharCountSpaces, setParagraphCharCountSpaces] = useState(4)
+
+  const [isParagraphCharDialogVisible, setIsParagraphCharDialogVisible] = useState(false)
+
+  const [paragraphChar, setParagraphChar] = useState({
+    checked: 'Сивол абзаца'
+  })
+
+  const [isWordsWrap, setIsWordsWrap] = useState(false)
+
+  const [isShowFoldersPanel, setIsShowFoldersPanel] = useState(false)
+
+  const [isAutoOffset, setIsAutoOffset] = useState(false)
+
+  const [isCancelBackBtn, setIsCancelBackBtn] = useState(false)
+
+  const [isFilterFiles, setIsFilterFiles] = useState(false)
+
+  const [isRecoverySession, setIsRecoverySession] = useState(false)
+
+  const [isShowHintsDialogVisible, setIsShowHintsDialogVisible] = useState(false)
+
+  const [hints, setHints] = useState({
+    checked: 'ОТКЛ. (По умолчанию)'
+  })
   
+  const [isAutoUppercase, setIsAutoUppercase] = useState(false)
+
+  const [isAuxKeyboard, setIsAuxKeyboard] = useState(false)
+  
+  const [isShowNumberLines, setIsShowNumberLines] = useState(true)
+
+  const [isFontFamilyDialogVisible, setIsFontFamilyDialogVisible] = useState(false)
+
+  const [isFontSizeDialogVisible, setIsFontSizeDialogVisible] = useState(false)
+
+  const [fontSize, setFontSize] = useState(18)
+
+  const minFontSize = 8
+
+  const maxFontSize = 56
+
+  const [isLineHeightDialogVisible, setIsLineHeightDialogVisible] = useState(false)
+
+  const [lineHeight, setLineHeight] = useState(2)
+
+  const minLineHeight = 0
+
+  const maxLineHeight = 6
+
+  const [fontFamily, setFontFamily] = useState({
+    checked: 'Обычный (По умолчанию)'
+  })
+
+  const [isAutoSave, setIsAutoSave] = useState(true)
+  
+  const [isAutoSaveIntervalDialogVisible, setIsAutoSaveIntervalDialogVisible] = useState(false)
+
+  const [autoSaveInterval, setAutoSaveInterval] = useState({
+    checked: '1 мин (По умолчанию)'
+  })
+
+  const [theme, setTheme] = useState({
+    checked: 'Светлая тема'
+  })
+
+  const [isThemeDialogVisible, setIsThemeDialogVisible] = useState(false)
+
+  const [isFullScreen, setIsFullScreen] = useState(true)
+  
+  const [isFullScreenDialogVisible, setIsFullScreenDialogVisible] = useState(false)
   
   return (
-    <ScrollView
-      style={styles.settingsActivityContainer}
-    >
-      <Text
-        style={styles.settingsActivityContainerHeader}
-      >
-        Общие настройки
-      </Text>
-      <View
-        style={styles.settingsActivityContainerItemColumn}
+    <>
+      <ScrollView
+        style={styles.settingsActivityContainer}
       >
         <Text
-          style={styles.settingsActivityContainerItemHeader}
+          style={styles.settingsActivityContainerHeader}
         >
-          Язык
+          Общие настройки
         </Text>
-        <Text
-          style={styles.settingsActivityContainerItemLabel}
+        <TouchableOpacity
+          style={styles.settingsActivityContainerItemColumn}
+          onPress={() => setIsLanguageDialogVisible(true)}
         >
-          {
-            'Авто (По умолчанию).'
-          }
-        </Text>
-      </View>
-      <View
-        style={styles.settingsActivityContainerItemColumn}
-      >
-        <Text
-          style={styles.settingsActivityContainerItemHeader}
+          <Text
+            style={styles.settingsActivityContainerItemHeader}
+          >
+            Язык
+          </Text>
+          <Text
+            style={styles.settingsActivityContainerItemLabel}
+          >
+            {
+              'Авто (По умолчанию).'
+            }
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.settingsActivityContainerItemColumn}
+          onPress={() => setIsEncodingDialogVisible(true)}
         >
-          Кодировка по умолчанию
-        </Text>
-        <Text
-          style={styles.settingsActivityContainerItemLabel}
-        >
-          {
-            'Кодировка по умолчанию при открытии и\nсоздании файлов.'
-          }
-        </Text>
-      </View>
-      <View
-        style={styles.settingsActivityContainerItemColumn}
-      >
-        <Text
-          style={styles.settingsActivityContainerItemHeader}
-        >
-          Сопоставление файлов
-        </Text>
-        <Text
-          style={styles.settingsActivityContainerItemLabel}
-        >
-          {
-            'Укажите расширения файлов для сопоставления с\nдоступными редакторами'
-          }
-        </Text>
-      </View>
-      <View
-        style={styles.settingsActivityContainerItemColumn}
-      >
-        <Text
-          style={styles.settingsActivityContainerItemHeader}
-        >
-          Разрыв строки
-        </Text>
-        <Text
-          style={styles.settingsActivityContainerItemLabel}
-        >
-          {
-            'Символ разрыва строки при сохранении файлов.'
-          }
-        </Text>
-      </View>
-      <View
-        style={styles.settingsActivityContainerItemColumn}
-      >
-        <Text
-          style={styles.settingsActivityContainerItemHeader}
-        >
-          Символ абзаца
-        </Text>
-        <Text
-          style={styles.settingsActivityContainerItemLabel}
-        >
-          {
-            'Символ строки, используемый при отступе.'
-          }
-        </Text>
-      </View>
-      <View
-        style={styles.settingsActivityContainerItemRow}
-      >
+          <Text
+            style={styles.settingsActivityContainerItemHeader}
+          >
+            Кодировка по умолчанию
+          </Text>
+          <Text
+            style={styles.settingsActivityContainerItemLabel}
+          >
+            {
+              'Кодировка по умолчанию при открытии и\nсоздании файлов.'
+            }
+          </Text>
+        </TouchableOpacity>
         <View
           style={styles.settingsActivityContainerItemColumn}
         >
           <Text
             style={styles.settingsActivityContainerItemHeader}
           >
-            Перенос по словам
+            Сопоставление файлов
           </Text>
           <Text
             style={styles.settingsActivityContainerItemLabel}
           >
             {
-              'Включить перенос слов по ширине\nэкрана.'
+              'Укажите расширения файлов для сопоставления с\nдоступными редакторами'
             }
           </Text>
         </View>
-        <Switch
-        
-        />
-      </View>
-      <View
-        style={styles.settingsActivityContainerItemRow}
-      >
+        <TouchableOpacity
+          style={styles.settingsActivityContainerItemColumn}
+          onPress={() => setIsBreakLineDialogVisible(true)}
+        >
+          <Text
+            style={styles.settingsActivityContainerItemHeader}
+          >
+            Разрыв строки
+          </Text>
+          <Text
+            style={styles.settingsActivityContainerItemLabel}
+          >
+            {
+              'Символ разрыва строки при сохранении файлов.'
+            }
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.settingsActivityContainerItemColumn}
+          onPress={() => setIsParagraphCharDialogVisible(true)}
+        >
+          <Text
+            style={styles.settingsActivityContainerItemHeader}
+          >
+            Символ абзаца
+          </Text>
+          <Text
+            style={styles.settingsActivityContainerItemLabel}
+          >
+            {
+              'Символ строки, используемый при отступе.'
+            }
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.settingsActivityContainerItemRow}
+          onPress={() => setIsWordsWrap(!isWordsWrap)}
+        >
+          <View
+            style={styles.settingsActivityContainerItemColumn}
+          >
+            <Text
+              style={styles.settingsActivityContainerItemHeader}
+            >
+              Перенос по словам
+            </Text>
+            <Text
+              style={styles.settingsActivityContainerItemLabel}
+            >
+              {
+                'Включить перенос слов по ширине\nэкрана.'
+              }
+            </Text>
+          </View>
+          <Switch
+            value={isWordsWrap}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.settingsActivityContainerItemRow}
+          onPress={() => setIsShowFoldersPanel(!isShowFoldersPanel)}
+        >
+          <View
+            style={styles.settingsActivityContainerItemColumn}
+          >
+            <Text
+              style={styles.settingsActivityContainerItemHeader}
+            >
+              Панель папок
+            </Text>
+            <Text
+              style={styles.settingsActivityContainerItemLabel}
+            >
+              {
+                'Включить панель навигации по папкам на\nглавном экране.'
+              }
+            </Text>
+          </View>
+          <Switch
+            value={isShowFoldersPanel}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.settingsActivityContainerItemRow}
+          onPress={() => setIsAutoOffset(!isAutoOffset)}
+        >
+          <View
+            style={styles.settingsActivityContainerItemColumn}
+          >
+            <Text
+              style={styles.settingsActivityContainerItemHeader}
+            >
+              Автоотступ
+            </Text>
+            <Text
+              style={styles.settingsActivityContainerItemLabel}
+            >
+              {
+                'Включить автоматический отступ для\nновых строк.'
+              }
+            </Text>
+          </View>
+          <Switch
+            value={isAutoOffset}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.settingsActivityContainerItemRow}
+          onPress={() => setIsCancelBackBtn(!isCancelBackBtn)}
+        >
+          <View
+            style={styles.settingsActivityContainerItemColumn}
+          >
+            <Text
+              style={styles.settingsActivityContainerItemHeader}
+            >
+              {
+                'Отмена кнопкой \"Назад\"'
+              }
+            </Text>
+            <Text
+              style={styles.settingsActivityContainerItemLabel}
+            >
+              {
+                'Отменять посленднее изменение с\nпомощью кнопки \"Назад\".'
+              }
+            </Text>
+          </View>
+          <Switch
+            value={isCancelBackBtn}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.settingsActivityContainerItemRow}
+          onPress={() => setIsFilterFiles(!isFilterFiles)}
+        >
+          <View
+            style={styles.settingsActivityContainerItemColumn}
+          >
+            <Text
+              style={styles.settingsActivityContainerItemHeader}
+            >
+              Фильтр файлов
+            </Text>
+            <Text
+              style={styles.settingsActivityContainerItemLabel}
+            >
+              {
+                'Скрывать нетекстовые файлы при\nоткрытии файлов.'
+              }
+            </Text>
+          </View>
+          <Switch
+            value={isFilterFiles}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.settingsActivityContainerItemRow}
+          onPress={() => setIsRecoverySession(!isRecoverySession)}
+        >
+          <View
+            style={styles.settingsActivityContainerItemColumn}
+          >
+            <Text
+              style={styles.settingsActivityContainerItemHeader}
+            >
+              Возобновление сеанса
+            </Text>
+            <Text
+              style={styles.settingsActivityContainerItemLabel}
+            >
+              {
+                'Восстанавливать открытые файлы при\nследующем запуске приложения.'
+              }
+            </Text>
+          </View>
+          <Switch
+            value={isRecoverySession}
+          />
+        </TouchableOpacity>
+        <Text
+          style={styles.settingsActivityContainerHeader}
+        >
+          Способ ввода
+        </Text>
+        <TouchableOpacity
+          style={styles.settingsActivityContainerItemColumn}
+          onPress={() => setIsShowHintsDialogVisible(true)}      
+        >
+          <Text
+            style={styles.settingsActivityContainerItemHeader}
+          >
+            Показывать подсказки
+          </Text>
+          <Text
+            style={styles.settingsActivityContainerItemLabel}
+          >
+            {
+              'Предлагать варианты слов во время ввода: ОТКЛ.\n(По умолчанию).'
+            }
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.settingsActivityContainerItemRow}
+          onPress={() => setIsAutoUppercase(!isAutoUppercase)}
+        >
+          <View
+            style={styles.settingsActivityContainerItemColumn}
+          >
+            <Text
+              style={styles.settingsActivityContainerItemHeader}
+            >
+              Заглавные автоматически
+            </Text>
+            <Text
+              style={styles.settingsActivityContainerItemLabel}
+            >
+              {
+                'Писать первое слово предложения с\nпрописной буквы.'
+              }
+            </Text>
+          </View>
+          <Switch
+            value={isAutoUppercase}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.settingsActivityContainerItemRow}
+          onPress={() => setIsAuxKeyboard(!isAuxKeyboard)}
+        >
+          <View
+            style={styles.settingsActivityContainerItemColumn}
+          >
+            <Text
+              style={styles.settingsActivityContainerItemHeader}
+            >
+              Дополнительная клавиатура
+            </Text>
+            <Text
+              style={styles.settingsActivityContainerItemLabel}
+            >
+              {
+                'Показывать дополнительную клавиатуру\nпод редактором'
+              }
+            </Text>
+          </View>
+          <Switch
+            value={isAuxKeyboard}
+          />
+        </TouchableOpacity>
+        <Text
+          style={styles.settingsActivityContainerHeader}
+        >
+          Параметры просмотра
+        </Text>
+        <TouchableOpacity
+          style={styles.settingsActivityContainerItemRow}
+          onPress={() => setIsShowNumberLines(!isShowNumberLines)}
+        >
+          <View
+            style={styles.settingsActivityContainerItemColumn}
+          >
+            <Text
+              style={styles.settingsActivityContainerItemHeader}
+            >
+              Номера строк
+            </Text>
+            <Text
+              style={styles.settingsActivityContainerItemLabel}
+            >
+              {
+                'Показывать номера строк.'
+              }
+            </Text>
+          </View>
+          <Switch
+            value={isShowNumberLines}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.settingsActivityContainerItemColumn}
+          onPress={() => setIsFontFamilyDialogVisible(true)}
+        >
+          <Text
+            style={styles.settingsActivityContainerItemHeader}
+          >
+            Тип шрифта
+          </Text>
+          <Text
+            style={styles.settingsActivityContainerItemLabel}
+          >
+            {
+              'Тип шрифта для редактирования текста: Обычный\n(По умолчанию).'
+            }
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.settingsActivityContainerItemColumn}
+          onPress={() => setIsFontSizeDialogVisible(true)}
+        >
+          <Text
+            style={styles.settingsActivityContainerItemHeader}
+          >
+            Размер шрифта
+          </Text>
+          <Text
+            style={styles.settingsActivityContainerItemLabel}
+          >
+            {
+              'Размер шрифта для редактировани текста: 18sp.'
+            }
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.settingsActivityContainerItemColumn}
+          onPress={() => setIsLineHeightDialogVisible(true)}
+        >
+          <Text
+            style={styles.settingsActivityContainerItemHeader}
+          >
+            Интервал между строками
+          </Text>
+          <Text
+            style={styles.settingsActivityContainerItemLabel}
+          >
+            {
+              'Междустрочный интервал для редактирования\nтекста: 2sp.'
+            }
+          </Text>
+        </TouchableOpacity>
+        <Text
+          style={styles.settingsActivityContainerHeader}
+        >
+          Автосохранение
+        </Text>
+        <TouchableOpacity
+          style={styles.settingsActivityContainerItemRow}
+          onPress={() => setIsAutoSave(!isAutoSave)}
+        >
+          <View
+            style={styles.settingsActivityContainerItemColumn}
+          >
+            <Text
+              style={styles.settingsActivityContainerItemHeader}
+            >
+              Автосохранение
+            </Text>
+            <Text
+              style={styles.settingsActivityContainerItemLabel}
+            >
+              {
+                'Автоматически сохранять изменения.'
+              }
+            </Text>
+          </View>
+          <Switch
+            value={isAutoSave}
+          />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.settingsActivityContainerItemColumn}
+          onPress={() => {
+            if (isAutoSave) {
+              setIsAutoSaveIntervalDialogVisible(true)
+            }
+          }}
+        >
+          <Text
+            style={styles.settingsActivityContainerItemHeader}
+          >
+            Интервал автосохранения
+          </Text>
+          <Text
+            style={styles.settingsActivityContainerItemLabel}
+          >
+            {
+              'Частота автосохранения: 1 мин (По умолчанию).'
+            }
+          </Text>
+        </TouchableOpacity>
+        <Text
+          style={styles.settingsActivityContainerHeader}
+        >
+          Внешний вид
+        </Text>
+        <TouchableOpacity
+          style={styles.settingsActivityContainerItemColumn}
+          onPress={() => setIsThemeDialogVisible(true)}
+        >
+          <Text
+            style={styles.settingsActivityContainerItemHeader}
+          >
+            Тема
+          </Text>
+          <Text
+            style={styles.settingsActivityContainerItemLabel}
+          >
+            {
+              'Выберите предпочтительную тему приложения.'
+            }
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.settingsActivityContainerItemRow}
+          onPress={() => setIsFullScreenDialogVisible(true)}
+        >
+          <View
+            style={styles.settingsActivityContainerItemColumn}
+          >
+            <Text
+              style={styles.settingsActivityContainerItemHeader}
+            >
+              Во весь экран
+            </Text>
+            <Text
+              style={styles.settingsActivityContainerItemLabel}
+            >
+              {
+                'Открывать приложение в полноэкранном\nрежиме.'
+              }
+            </Text>
+          </View>
+          <Switch
+            value={isFullScreen}
+          />
+        </TouchableOpacity>
+        <Text
+          style={styles.settingsActivityContainerHeader}
+        >
+          О программе
+        </Text>
         <View
           style={styles.settingsActivityContainerItemColumn}
         >
           <Text
             style={styles.settingsActivityContainerItemHeader}
           >
-            Панель папок
+            Версия
           </Text>
           <Text
             style={styles.settingsActivityContainerItemLabel}
           >
             {
-              'Включить панель навигации по папкам на\nглавном экране.'
+              '1.0.0'
             }
           </Text>
         </View>
-        <Switch
-        
-        />
-      </View>
-      <View
-        style={styles.settingsActivityContainerItemRow}
-      >
         <View
           style={styles.settingsActivityContainerItemColumn}
         >
           <Text
             style={styles.settingsActivityContainerItemHeader}
           >
-            Автоотступ
+            Разработчик
           </Text>
           <Text
             style={styles.settingsActivityContainerItemLabel}
           >
             {
-              'Включить автоматический отступ для\nновых строк.'
+              'Softtrack'
             }
           </Text>
         </View>
-        <Switch
-        
-        />
-      </View>
-      <View
-        style={styles.settingsActivityContainerItemRow}
-      >
-        <View
+        <TouchableOpacity
           style={styles.settingsActivityContainerItemColumn}
+          onPress={async () => await WebBrowser.openBrowserAsync('https://www.facebook.com/QuickEditTextEditor')}
         >
           <Text
             style={styles.settingsActivityContainerItemHeader}
           >
-            {
-              'Отмена кнопкой \"Назад\"'
-            }
+            Следить за новостями
           </Text>
           <Text
             style={styles.settingsActivityContainerItemLabel}
           >
             {
-              'Отменять посленднее изменение с\nпомощью кнопки \"Назад\".'
+              'Следите за нашими новостями на Facebook.'
             }
           </Text>
-        </View>
-        <Switch
-        
-        />
-      </View>
-      <View
-        style={styles.settingsActivityContainerItemRow}
-      >
-        <View
+        </TouchableOpacity>
+        <TouchableOpacity
           style={styles.settingsActivityContainerItemColumn}
+          onPress={async () =>  await WebBrowser.openBrowserAsync('https://forum.xda-developers.com/t/app-4-0-3-quickedit-text-editor.2899385/')}
         >
           <Text
             style={styles.settingsActivityContainerItemHeader}
           >
-            Фильтр файлов
+            Отправить отзыв
           </Text>
           <Text
             style={styles.settingsActivityContainerItemLabel}
           >
             {
-              'Скрывать нетекстовые файлы при\nоткрытии файлов.'
+              'Сообщите о проблеме на форуме.'
             }
           </Text>
-        </View>
-        <Switch
-        
-        />
-      </View>
-      <View
-        style={styles.settingsActivityContainerItemRow}
-      >
-        <View
+        </TouchableOpacity>
+        <TouchableOpacity
           style={styles.settingsActivityContainerItemColumn}
+          onPress={async () => await WebBrowser.openBrowserAsync('market://details?id=com.google.android.youtube')}
         >
           <Text
             style={styles.settingsActivityContainerItemHeader}
           >
-            Возобновление сеанса
+            Убрать рекламу
           </Text>
           <Text
             style={styles.settingsActivityContainerItemLabel}
           >
             {
-              'Восстанавливать открытые файлы при\nследующем запуске приложения.'
+              'Скачать версию без рекламы из Google Play.'
             }
           </Text>
-        </View>
-        <Switch
-        
-        />
-      </View>
-      <Text
-        style={styles.settingsActivityContainerHeader}
+        </TouchableOpacity>
+      </ScrollView>
+      <Dialog
+        visible={isFullScreenDialogVisible}
+        onDismiss={() => {
+          setIsFullScreenDialogVisible(false)
+          setIsFullScreen(!isFullScreen)
+        }}
       >
-        Способ ввода
-      </Text>
-      <View
-        style={styles.settingsActivityContainerItemColumn}
-      >
-        <Text
-          style={styles.settingsActivityContainerItemHeader}
-        >
-          Показывать подсказки
-        </Text>
-        <Text
-          style={styles.settingsActivityContainerItemLabel}
-        >
-          {
-            'Предлагать варианты слов во время ввода: ОТКЛ.\n(По умолчанию).'
-          }
-        </Text>
-      </View>
-      <View
-        style={styles.settingsActivityContainerItemRow}
-      >
-        <View
-          style={styles.settingsActivityContainerItemColumn}
-        >
-          <Text
-            style={styles.settingsActivityContainerItemHeader}
-          >
-            Заглавные автоматически
-          </Text>
-          <Text
-            style={styles.settingsActivityContainerItemLabel}
-          >
+        <Dialog.Title>
+          Во весь экран
+        </Dialog.Title>
+        <Dialog.Content>
+          <Text>
             {
-              'Писать первое слово предложения с\nпрописной буквы.'
+              'Этот параметр будет применен\nпосле перезапуска приложения.'
             }
           </Text>
-        </View>
-        <Switch
-        
-        />
-      </View>
-      <View
-        style={styles.settingsActivityContainerItemRow}
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button
+            title="ОК"
+            onPress={() => {
+              setIsFullScreenDialogVisible(false)
+              setIsFullScreen(!isFullScreen)
+            }}
+          />
+        </Dialog.Actions>
+      </Dialog>
+      <Dialog
+        visible={isThemeDialogVisible}
+        onDismiss={() => setIsThemeDialogVisible(false)}
       >
-        <View
-          style={styles.settingsActivityContainerItemColumn}
-        >
-          <Text
-            style={styles.settingsActivityContainerItemHeader}
-          >
-            Дополнительная клавиатура
-          </Text>
-          <Text
-            style={styles.settingsActivityContainerItemLabel}
-          >
-            {
-              'Показывать дополнительную клавиатуру\nпод редактором'
-            }
-          </Text>
-        </View>
-        <Switch
-        
-        />
-      </View>
-      <Text
-        style={styles.settingsActivityContainerHeader}
-      >
-        Параметры просмотра
-      </Text>
-      <View
-        style={styles.settingsActivityContainerItemRow}
-      >
-        <View
-          style={styles.settingsActivityContainerItemColumn}
-        >
-          <Text
-            style={styles.settingsActivityContainerItemHeader}
-          >
-            Номера строк
-          </Text>
-          <Text
-            style={styles.settingsActivityContainerItemLabel}
-          >
-            {
-              'Показывать номера строк.'
-            }
-          </Text>
-        </View>
-        <Switch
-        
-        />
-      </View>
-      <View
-        style={styles.settingsActivityContainerItemColumn}
-      >
-        <Text
-          style={styles.settingsActivityContainerItemHeader}
-        >
-          Тип шрифта
-        </Text>
-        <Text
-          style={styles.settingsActivityContainerItemLabel}
-        >
-          {
-            'Тип шрифта для редактирования текста: Обычный\n(По умолчанию).'
-          }
-        </Text>
-      </View>
-      <View
-        style={styles.settingsActivityContainerItemColumn}
-      >
-        <Text
-          style={styles.settingsActivityContainerItemHeader}
-        >
-          Размер шрифта
-        </Text>
-        <Text
-          style={styles.settingsActivityContainerItemLabel}
-        >
-          {
-            'Размер шрифта для редактировани текста: 18sp.'
-          }
-        </Text>
-      </View>
-      <View
-        style={styles.settingsActivityContainerItemColumn}
-      >
-        <Text
-          style={styles.settingsActivityContainerItemHeader}
-        >
-          Интервал между строками
-        </Text>
-        <Text
-          style={styles.settingsActivityContainerItemLabel}
-        >
-          {
-            'Междустрочный интервал для редактирования\nтекста: 2sp.'
-          }
-        </Text>
-      </View>
-      <Text
-        style={styles.settingsActivityContainerHeader}
-      >
-        Автосохранение
-      </Text>
-      <View
-        style={styles.settingsActivityContainerItemRow}
-      >
-        <View
-          style={styles.settingsActivityContainerItemColumn}
-        >
-          <Text
-            style={styles.settingsActivityContainerItemHeader}
-          >
-            Автосохранение
-          </Text>
-          <Text
-            style={styles.settingsActivityContainerItemLabel}
-          >
-            {
-              'Автоматически сохранять изменения.'
-            }
-          </Text>
-        </View>
-        <Switch
-        
-        />
-      </View>
-      <View
-        style={styles.settingsActivityContainerItemColumn}
-      >
-        <Text
-          style={styles.settingsActivityContainerItemHeader}
-        >
-          Интервал автосохранения
-        </Text>
-        <Text
-          style={styles.settingsActivityContainerItemLabel}
-        >
-          {
-            'Частота автосохранения: 1 мин (По умолчанию).'
-          }
-        </Text>
-      </View>
-      <Text
-        style={styles.settingsActivityContainerHeader}
-      >
-        Внешний вид
-      </Text>
-      <View
-        style={styles.settingsActivityContainerItemColumn}
-      >
-        <Text
-          style={styles.settingsActivityContainerItemHeader}
-        >
+        <Dialog.Title>
           Тема
-        </Text>
-        <Text
-          style={styles.settingsActivityContainerItemLabel}
-        >
-          {
-            'Выберите предпочтительную тему приложения.'
-          }
-        </Text>
-      </View>
-      <View
-        style={styles.settingsActivityContainerItemRow}
-      >
+        </Dialog.Title>
+        <Dialog.Content>
         <View
-          style={styles.settingsActivityContainerItemColumn}
+          style={styles.dialogContentRow}
         >
+          <RadioButton
+            value="Светлая тема"
+            label="Светлая тема"
+            status={theme.checked === 'Светлая тема' ? 'checked' : 'unchecked'}
+            onPress={() => { setTheme({ checked: 'Светлая тема' }) }}
+          />
           <Text
-            style={styles.settingsActivityContainerItemHeader}
+            style={styles.dialogContentRowLabel}
           >
-            Во весь экран
-          </Text>
-          <Text
-            style={styles.settingsActivityContainerItemLabel}
-          >
-            {
-              'Открывать приложение в полноэкранном\nрежиме.'
-            }
+            Светлая тема
           </Text>
         </View>
-        <Switch
-        
-        />
-      </View>
-      <Text
-        style={styles.settingsActivityContainerHeader}
-      >
-        О программе
-      </Text>
-      <View
-        style={styles.settingsActivityContainerItemColumn}
-      >
-        <Text
-          style={styles.settingsActivityContainerItemHeader}
+        <View
+          style={styles.dialogContentRow}
         >
-          Версия
-        </Text>
-        <Text
-          style={styles.settingsActivityContainerItemLabel}
+          <RadioButton
+            value="Темная тема"
+            label="Темная тема"
+            status={theme.checked === 'Темная тема' ? 'checked' : 'unchecked'}
+            onPress={() => { setTheme({ checked: 'Темная тема' }) }}
+          />
+          <Text
+            style={styles.dialogContentRowLabel}
+          >
+            Темная тема
+          </Text>
+        </View>
+        <View
+          style={styles.dialogContentRow}
         >
+          <RadioButton
+            value="Черная тема"
+            label="Черная тема"
+            status={theme.checked === 'Черная тема' ? 'checked' : 'unchecked'}
+            onPress={() => { setTheme({ checked: 'Черная тема' }) }}
+          />
+          <Text
+            style={styles.dialogContentRowLabel}
+          >
+            Черная тема
+          </Text>
+        </View>
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button
+            title="Отмена"
+            onPress={() => {
+              setIsThemeDialogVisible(false)
+            }}
+          />
+        </Dialog.Actions>
+      </Dialog>
+      <Dialog
+        visible={isAutoSaveIntervalDialogVisible}
+        onDismiss={() => setIsAutoSaveIntervalDialogVisible(false)}
+      >
+        <Dialog.Title>
+          Интервал автосохранения
+        </Dialog.Title>
+        <Dialog.Content>
+        <View
+          style={styles.dialogContentRow}
+        >
+          <RadioButton
+            value="30 сек"
+            label="30 сек"
+            status={autoSaveInterval.checked === '30 сек' ? 'checked' : 'unchecked'}
+            onPress={() => { setAutoSaveInterval({ checked: '30 сек' }) }}
+          />
+          <Text
+            style={styles.dialogContentRowLabel}
+          >
+            30 сек
+          </Text>
+        </View>
+        <View
+          style={styles.dialogContentRow}
+        >
+          <RadioButton
+            value="1 мин (По умолчанию)"
+            label="1 мин (По умолчанию)"
+            status={autoSaveInterval.checked === '1 мин (По умолчанию)' ? 'checked' : 'unchecked'}
+            onPress={() => { setAutoSaveInterval({ checked: '1 мин (По умолчанию)' }) }}
+          />
+          <Text
+            style={styles.dialogContentRowLabel}
+          >
+            1 мин (По умолчанию)
+          </Text>
+        </View>
+        <View
+          style={styles.dialogContentRow}
+        >
+          <RadioButton
+            value="3 мин"
+            label="3 мин"
+            status={autoSaveInterval.checked === '3 мин' ? 'checked' : 'unchecked'}
+            onPress={() => { setAutoSaveInterval({ checked: '3 мин' }) }}
+          />
+          <Text
+            style={styles.dialogContentRowLabel}
+          >
+            3 мин
+          </Text>
+        </View>
+        <View
+          style={styles.dialogContentRow}
+        >
+          <RadioButton
+            value="5 мин"
+            label="5 мин"
+            status={autoSaveInterval.checked === '5 мин' ? 'checked' : 'unchecked'}
+            onPress={() => { setAutoSaveInterval({ checked: '5 мин' }) }}
+          />
+          <Text
+            style={styles.dialogContentRowLabel}
+          >
+            5 мин
+          </Text>
+        </View>
+        <View
+          style={styles.dialogContentRow}
+        >
+          <RadioButton
+            value="10 мин"
+            label="10 мин"
+            status={autoSaveInterval.checked === '10 мин' ? 'checked' : 'unchecked'}
+            onPress={() => { setAutoSaveInterval({ checked: '10 мин' }) }}
+          />
+          <Text
+            style={styles.dialogContentRowLabel}
+          >
+            10 мин
+          </Text>
+        </View>
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button
+            title="Отмена"
+            onPress={() => {
+              setIsAutoSaveIntervalDialogVisible(false)
+            }}
+          />
+        </Dialog.Actions>
+      </Dialog>
+      <Dialog
+        visible={isFontSizeDialogVisible}
+        onDismiss={() => setIsFontSizeDialogVisible(false)}
+      >
+        <Dialog.Title>
           {
-            '1.0.0'
+            `Размер шрифта: ${fontSize}`
           }
-        </Text>
-      </View>
-      <View
-        style={styles.settingsActivityContainerItemColumn}
+        </Dialog.Title>
+        <Dialog.Content>
+          <Slider
+            style={{width: 315, height: 40}}
+            onValueChange={(value) => {
+              const parsedFontSize = Number.parseInt(value)
+              setFontSize(parsedFontSize)
+            }}
+            minimumValue={minFontSize}
+            maximumValue={maxFontSize}
+            minimumTrackTintColor="rgb(150, 150, 150)"
+            maximumTrackTintColor="rgb(150, 150, 150)"
+          />
+          <View
+            style={styles.dialogRowBetween}
+          >
+            <Text>
+              {
+                minFontSize
+              }
+            </Text>
+            <Text>
+              {
+                maxFontSize
+              }
+            </Text>
+          </View>
+        </Dialog.Content>
+        <Dialog.Actions>
+        <Button
+            title="ПО УМОЛЧАНИЮ"
+            onPress={() => {
+              setIsFontSizeDialogVisible(false)
+              setFontSize(8)
+            }}
+          />
+          <Button
+            title="ОТМЕНА"
+            onPress={() => {
+              setIsFontSizeDialogVisible(false)
+            }}
+          />
+          <Button
+            title="ОК"
+            onPress={() => {
+              setIsFontSizeDialogVisible(false)
+            }}
+          />
+        </Dialog.Actions>
+      </Dialog>
+      <Dialog
+        visible={isLineHeightDialogVisible}
+        onDismiss={() => setIsLineHeightDialogVisible(false)}
       >
-        <Text
-          style={styles.settingsActivityContainerItemHeader}
-        >
-          Разработчик
-        </Text>
-        <Text
-          style={styles.settingsActivityContainerItemLabel}
-        >
+        <Dialog.Title>
           {
-            'Softtrack'
+            `Интервал между строками: ${lineHeight}`
           }
-        </Text>
-      </View>
-      <View
-        style={styles.settingsActivityContainerItemColumn}
-      >
-        <Text
-          style={styles.settingsActivityContainerItemHeader}
-        >
-          Следить за новостями
-        </Text>
-        <Text
-          style={styles.settingsActivityContainerItemLabel}
-        >
-          {
-            'Следите за нашими новостями на Facebook.'
-          }
-        </Text>
-      </View>
-      <View
-        style={styles.settingsActivityContainerItemColumn}
-      >
-        <Text
-          style={styles.settingsActivityContainerItemHeader}
-        >
-          Отправить отзыв
-        </Text>
-        <Text
-          style={styles.settingsActivityContainerItemLabel}
-        >
-          {
-            'Сообщите о проблеме на форуме.'
-          }
-        </Text>
-      </View>
-      <View
-        style={styles.settingsActivityContainerItemColumn}
-      >
-        <Text
-          style={styles.settingsActivityContainerItemHeader}
-        >
-          Убрать рекламу
-        </Text>
-        <Text
-          style={styles.settingsActivityContainerItemLabel}
-        >
-          {
-            'Скачать версию без рекламы из Google Play.'
-          }
-        </Text>
-      </View>
-    </ScrollView>
+        </Dialog.Title>
+        <Dialog.Content>
+          <Slider
+            style={{width: 315, height: 40}}
+            onValueChange={(value) => {
+              const parsedLineHeight = Number.parseInt(value)
+              setLineHeight(parsedLineHeight)
+            }}
+            minimumValue={minLineHeight}
+            maximumValue={maxLineHeight}
+            minimumTrackTintColor="rgb(150, 150, 150)"
+            maximumTrackTintColor="rgb(150, 150, 150)"
+          />
+          <View
+            style={styles.dialogRowBetween}
+          >
+            <Text>
+              {
+                minLineHeight
+              }
+            </Text>
+            <Text>
+              {
+                maxLineHeight
+              }
+            </Text>
+          </View>
+        </Dialog.Content>
+        <Dialog.Actions>
+        <Button
+            title="ПО УМОЛЧАНИЮ"
+            onPress={() => {
+              setIsFontSizeDialogVisible(false)
+              setIsLineHeightDialogVisible(2)
+            }}
+          />
+          <Button
+            title="ОТМЕНА"
+            onPress={() => {
+              setIsLineHeightDialogVisible(false)
+            }}
+          />
+          <Button
+            title="ОК"
+            onPress={() => {
+              setIsLineHeightDialogVisible(false)
+            }}
+          />
+        </Dialog.Actions>
+      </Dialog>
+      <Dialog
+        visible={isEncodingDialogVisible}
+        onDismiss={() => setIsEncodingDialogVisible(false)}>
+        <Dialog.Title>
+          Кодировка по умолчанию
+        </Dialog.Title>
+        <Dialog.Content>
+          <ScrollView>
+            <View
+              style={styles.dialogContentRow}
+            >
+              <RadioButton
+                value="UTF-8"
+                label="UTF-8"
+                status={encodingType.checked === 'UTF-8' ? 'checked' : 'unchecked'}
+                onPress={() => { setEncodingType({ checked: 'UTF-8' }) }}
+              />
+              <Text
+                style={styles.dialogContentRowLabel}
+              >
+                UTF-8
+              </Text>
+            </View>
+            <View
+              style={styles.dialogContentRow}
+            >
+              <RadioButton
+                value="UTF-16"
+                label="UTF-16"
+                status={encodingType.checked === 'UTF-16' ? 'checked' : 'unchecked'}
+                onPress={() => { setEncodingType({ checked: 'UTF-16' }) }}
+              />
+              <Text
+                style={styles.dialogContentRowLabel}
+              >
+                UTF-16
+              </Text>
+            </View>
+            <View
+              style={styles.dialogContentRow}
+            >
+              <RadioButton
+                value="UTF-16BE"
+                label="UTF-16BE"
+                status={encodingType.checked === 'UTF-16BE' ? 'checked' : 'unchecked'}
+                onPress={() => { setEncodingType({ checked: 'UTF-16BE' }) }}
+              />
+              <Text
+                style={styles.dialogContentRowLabel}
+              >
+                UTF-16BE
+              </Text>
+            </View>
+          </ScrollView>
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button
+            title="ОТМЕНА"
+            onPress={() => {
+              showToast(`ОТМЕНА`)
+              setIsEncodingDialogVisible(false)
+            }}
+          />
+          <Button
+            title="ОК"
+            onPress={() => {
+              showToast(`ОК`)
+              setIsEncodingDialogVisible(false)
+            }}
+          />
+        </Dialog.Actions>
+      </Dialog>
+      <Dialog
+        visible={isBreakLineDialogVisible}
+        onDismiss={() => setIsBreakLineDialogVisible(false)}>
+        <Dialog.Title>
+          Разрыв строки
+        </Dialog.Title>
+        <Dialog.Content>
+          <ScrollView>
+            <View
+              style={styles.dialogContentRow}
+            >
+              <RadioButton
+                value="Авто (По умолчанию)"
+                label="Авто (По умолчанию)"
+                status={breakLine.checked === 'Авто (По умолчанию)' ? 'checked' : 'unchecked'}
+                onPress={() => { setBreakLine({ checked: 'Авто (По умолчанию)' }) }}
+              />
+              <Text
+                style={styles.dialogContentRowLabel}
+              >
+                Авто (По умолчанию)
+              </Text>
+            </View>
+            <View
+              style={styles.dialogContentRow}
+            >
+              <RadioButton
+                value="Android, Linux, OS X (\n)"
+                label="Android, Linux, OS X (\n)"
+                status={breakLine.checked === 'Android, Linux, OS X (\n)' ? 'checked' : 'unchecked'}
+                onPress={() => { setBreakLine({ checked: 'Android, Linux, OS X (\n)' }) }}
+              />
+              <Text
+                style={styles.dialogContentRowLabel}
+              >
+                Android, Linux, OS X (\n)
+              </Text>
+            </View>
+            <View
+              style={styles.dialogContentRow}
+            >
+              <RadioButton
+                value="Windows (\r\n)"
+                label="Windows (\r\n)"
+                status={breakLine.checked === 'Windows (\r\n)' ? 'checked' : 'unchecked'}
+                onPress={() => { setBreakLine({ checked: 'Windows (\r\n)' }) }}
+              />
+              <Text
+                style={styles.dialogContentRowLabel}
+              >
+                Windows (\r\n)
+              </Text>
+            </View>
+            <View
+              style={styles.dialogContentRow}
+            >
+              <RadioButton
+                value="Mac OS (\r)"
+                label="Mac OS (\r)"
+                status={breakLine.checked === 'Mac OS (\r)' ? 'checked' : 'unchecked'}
+                onPress={() => { setBreakLine({ checked: 'Mac OS (\r)' }) }}
+              />
+              <Text
+                style={styles.dialogContentRowLabel}
+              >
+                Mac OS (\r)
+              </Text>
+            </View>
+          </ScrollView>
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button
+            title="ОТМЕНА"
+            onPress={() => {
+              showToast(`ОТМЕНА`)
+              setIsLanguageDialogVisible(false)
+            }}
+          />
+          <Button
+            title="ОК"
+            onPress={() => {
+              showToast(`ОК`)
+              setIsLanguageDialogVisible(false)
+            }}
+          />
+        </Dialog.Actions>
+      </Dialog>
+      <Dialog
+        visible={isParagraphCharDialogVisible}
+        onDismiss={() => setIsParagraphCharDialogVisible(false)}>
+        <Dialog.Title>
+          Символ абзаца
+        </Dialog.Title>
+        <Dialog.Content>
+          <ScrollView>
+            <View
+              style={styles.dialogContentRow}
+            >
+              <RadioButton
+                value="Символ табуляции"
+                label="Символ табуляции"
+                status={paragraphChar.checked === 'Символ табуляции' ? 'checked' : 'unchecked'}
+                onPress={() => { setParagraphChar({ checked: 'Символ табуляции' }) }}
+              />
+              <Text
+                style={styles.dialogContentRowLabel}
+              >
+                Символ табуляции
+              </Text>
+            </View>
+            <View
+              style={styles.dialogContentRow}
+            >
+              <RadioButton
+                value="знака(ов) пробела"
+                label="знака(ов) пробела"
+                status={paragraphChar.checked === 'знака(ов) пробела' ? 'checked' : 'unchecked'}
+                onPress={() => { setParagraphChar({ checked: 'знака(ов) пробела' }) }}
+              />
+              <TextInput
+                value={paragraphCharCountSpaces}
+                onChangeText={(value) => setParagraphCharCountSpaces(value)}
+              />
+              <Text
+                style={styles.dialogContentRowLabel}
+              >
+                знака(ов) пробела
+              </Text>
+            </View>
+          </ScrollView>
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button
+            title="ОТМЕНА"
+            onPress={() => {
+              showToast(`ОТМЕНА`)
+              setIsParagraphCharDialogVisible(false)
+            }}
+          />
+          <Button
+            title="ОК"
+            onPress={() => {
+              showToast(`ОК`)
+              setIsParagraphCharDialogVisible(false)
+            }}
+          />
+        </Dialog.Actions>
+      </Dialog>
+      <Dialog
+        visible={isLanguageDialogVisible}
+        onDismiss={() => setIsLanguageDialogVisible(false)}>
+        <Dialog.Title>
+          Язык
+        </Dialog.Title>
+        <Dialog.Content>
+          <ScrollView>
+            <View
+              style={styles.dialogContentRow}
+            >
+              <RadioButton
+                value="Авто (По умолчанию)"
+                label="Авто (По умолчанию)"
+                status={language.checked === 'Авто (По умолчанию)' ? 'checked' : 'unchecked'}
+                onPress={() => { setLanguage({ checked: 'Авто (По умолчанию)' }) }}
+              />
+              <Text
+                style={styles.dialogContentRowLabel}
+              >
+                Авто (По умолчанию)
+              </Text>
+            </View>
+            <View
+              style={styles.dialogContentRow}
+            >
+              <RadioButton
+                value="Русский"
+                label="Русский"
+                status={language.checked === 'Русский' ? 'checked' : 'unchecked'}
+                onPress={() => { setLanguage({ checked: 'Русский' }) }}
+              />
+              <Text
+                style={styles.dialogContentRowLabel}
+              >
+                Русский
+              </Text>
+            </View>
+            <View
+              style={styles.dialogContentRow}
+            >
+              <RadioButton
+                value="English"
+                label="English"
+                status={language.checked === 'English' ? 'checked' : 'unchecked'}
+                onPress={() => { setLanguage({ checked: 'English' }) }}
+              />
+              <Text
+                style={styles.dialogContentRowLabel}
+              >
+                English
+              </Text>
+            </View>
+          </ScrollView>
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button
+            title="ОТМЕНА"
+            onPress={() => {
+              showToast(`ОТМЕНА`)
+              setIsLanguageDialogVisible(false)
+            }}
+          />
+          <Button
+            title="ОК"
+            onPress={() => {
+              showToast(`ОК`)
+              setIsLanguageDialogVisible(false)
+            }}
+          />
+        </Dialog.Actions>
+      </Dialog>
+      <Dialog
+        visible={isShowHintsDialogVisible}
+        onDismiss={() => setIsShowHintsDialogVisible(false)}>
+        <Dialog.Title>
+          Показывать подсказки
+        </Dialog.Title>
+        <Dialog.Content>
+          <ScrollView>
+            <View
+              style={styles.dialogContentRow}
+            >
+              <RadioButton
+                value="ВКЛ."
+                label="ВКЛ."
+                status={hints.checked === 'ВКЛ.' ? 'checked' : 'unchecked'}
+                onPress={() => { setHints({ checked: 'ВКЛ.' }) }}
+              />
+              <Text
+                style={styles.dialogContentRowLabel}
+              >
+                ВКЛ.
+              </Text>
+            </View>
+            <View
+              style={styles.dialogContentRow}
+            >
+              <RadioButton
+                value="Русский"
+                label="ОТКЛ. (По умолчанию)s"
+                status={hints.checked === 'ОТКЛ. (По умолчанию)' ? 'checked' : 'unchecked'}
+                onPress={() => { setHints({ checked: 'ОТКЛ. (По умолчанию)' }) }}
+              />
+              <Text
+                style={styles.dialogContentRowLabel}
+              >
+                ОТКЛ. (По умолчанию)
+              </Text>
+            </View>
+            <View
+              style={styles.dialogContentRow}
+            >
+              <RadioButton
+                value="English"
+                label="English"
+                status={hints.checked === 'ОТКЛ. (Принудительно)' ? 'checked' : 'unchecked'}
+                onPress={() => { setHints({ checked: 'ОТКЛ. (Принудительно)' }) }}
+              />
+              <Text
+                style={styles.dialogContentRowLabel}
+              >
+                ОТКЛ. (Принудительно)
+              </Text>
+            </View>
+          </ScrollView>
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button
+            title="ОТМЕНА"
+            onPress={() => {
+              showToast(`ОТМЕНА`)
+              setIsShowHintsDialogVisible(false)
+            }}
+          />
+          <Button
+            title="ОК"
+            onPress={() => {
+              showToast(`ОК`)
+              setIsShowHintsDialogVisible(false)
+            }}
+          />
+        </Dialog.Actions>
+      </Dialog>
+    </>
   )
 }
 
@@ -3794,10 +4713,32 @@ export function FilesActionActivity({ navigation, route }) {
   const [isFilterEnabled, setIsFilterEnabled] = useState(false)
 
   const [open, setOpen] = useState(false)
-  // const open = true
+
+  const [isCreateFileDialogVisible, setIsCreateFileDialogVisible] = useState(false)
+
+  const [createdFileNameInput, setCreatedFileNameInput] = useState('')
+
+  const [isCreateFolderDialogVisible, setIsCreateFolderDialogVisible] = useState(false)
+
+  const [createdFolderNameInput, setCreatedFolderNameInput] = useState('')
+
+  const [isSaveDialogVisible, setIsSaveDialogVisible] = useState(false)
+
+  const [savedFileName, setSavedFileName] = useState('Безымянный.txt')
 
   const goToActivity = (navigation, activityName, params = {}) => {
     navigation.navigate(activityName, params)
+  }
+
+  const createFile = async (fileName, fileContent) => {
+    let fileUri = FileSystem.cacheDirectory + fileName
+    console.log(`create fileUri: ${fileUri}`)
+    await FileSystem.writeAsStringAsync(fileUri, fileContent, { encoding: FileSystem.EncodingType.UTF8 })
+  }
+
+  const createFolder = async () => {
+    let fileUri = FileSystem.cacheDirectory + createdFolderNameInput
+    await FileSystem.makeDirectoryAsync(fileUri, { intermediates: true })
   }
 
   const showToast = (msg) => {
@@ -4006,6 +4947,34 @@ export function FilesActionActivity({ navigation, route }) {
     }
   }, [isFilterEnabled])
 
+  const getDynamicFabItem = () => {
+    if (filesAction === 'Открыть файл') {
+      return {
+        icon: 'plus',
+        label: 'Создать файл',
+        labelStyle: styles.fabGrounpLabelStyle,
+        labelTextColor: 'rgb(255, 255, 255)',
+        onPress: () => {
+          console.log('Создать файл')
+          setOpen(false)
+          setIsCreateFileDialogVisible(true)
+        }
+      }
+    } else {
+      return {
+        icon: 'email',
+        label: 'Сохранить как',
+        labelStyle: styles.fabGrounpLabelStyle,
+        labelTextColor: 'rgb(255, 255, 255)',
+        onPress: () => {
+          console.log('Сохранить как')
+          setOpen(false)
+          setIsSaveDialogVisible(true)
+        }
+      }
+    }
+  }
+
   return (
     <>
       <ScrollView>
@@ -4084,25 +5053,16 @@ export function FilesActionActivity({ navigation, route }) {
         actions={[
           {
             icon: 'plus',
-            label: 'Создать файл',
-            labelStyle: styles.fabGrounpLabelStyle,
-            labelTextColor: 'rgb(255, 255, 255)',
-            onPress: () => console.log('Создать файл')
-          },
-          {
-            icon: 'plus',
             label: 'Создать папку',
             labelStyle: styles.fabGrounpLabelStyle,
             labelTextColor: 'rgb(255, 255, 255)',
-            onPress: () => console.log('Создать папку'),
+            onPress: () => {
+              console.log('Создать папку')
+              setOpen(false)
+              setIsCreateFolderDialogVisible(true)
+            }
           },
-          {
-            icon: 'email',
-            label: 'Сохранить как',
-            labelStyle: styles.fabGrounpLabelStyle,
-            labelTextColor: 'rgb(255, 255, 255)',
-            onPress: () => console.log('Сохранить как'),
-          }
+          getDynamicFabItem()
         ]}
         onStateChange={() => console.log('onStateChange')}
         onPress={() => {
@@ -4155,6 +5115,177 @@ export function FilesActionActivity({ navigation, route }) {
             />
           </Dialog.Actions>
         </Dialog>
+        <Dialog
+          visible={isCreateFileDialogVisible}
+          onDismiss={() => setIsCreateFileDialogVisible(false)}
+        >
+        <Dialog.Title>
+          Создать файл
+        </Dialog.Title>
+        <Dialog.Content>
+          <Text>
+            Введите имя файла
+          </Text>
+          <TextInput
+            value={createdFileNameInput}
+            onChangeText={(value) => setCreatedFileNameInput(value)}
+          />
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button
+            title="ОТМЕНА"
+            onPress={() => {
+              setIsCreateFileDialogVisible(false)
+              setCreatedFileNameInput('')
+            }}
+          />
+          <Button
+            title="ОК"
+            onPress={() => {
+              setIsCreateFileDialogVisible(false)
+              createFile(createdFileNameInput, '')
+              setCreatedFileNameInput('')
+            }}
+          />
+        </Dialog.Actions>
+      </Dialog>
+      <Dialog
+        visible={isCreateFolderDialogVisible}
+        onDismiss={() => setIsCreateFolderDialogVisible(false)}
+      >
+        <Dialog.Title>
+          Создать папку
+        </Dialog.Title>
+        <Dialog.Content>
+          <Text>
+            Введите имя папки
+          </Text>
+          <TextInput
+            value={createdFolderNameInput}
+            onChangeText={(value) => setCreatedFolderNameInput(value)}
+          />
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button
+            title="ОТМЕНА"
+            onPress={() => {
+              setIsCreateFolderDialogVisible(false)
+              setCreatedFolderNameInput('')
+            }}
+          />
+          <Button
+            title="ОК"
+            onPress={() => {
+              setIsCreateFolderDialogVisible(false)
+              createFolder()
+              setCreatedFolderNameInput('')
+            }}
+          />
+        </Dialog.Actions>
+      </Dialog>
+      <Dialog
+        visible={isSaveDialogVisible}
+        onDismiss={() => setIsSaveDialogVisible(false)}>
+        <Dialog.Content>
+          <View
+            style={styles.dialogRowBetween}
+          >
+            <Text>
+              /storage/emulated/0
+            </Text>
+            <Entypo name="home" size={24} color="black" />
+          </View>
+          <ScrollView
+            style={styles.saveDialogScrollBody}
+          >
+            {
+              docsList.map((doc, docIndex) => {
+                return (
+                  <TouchableOpacity
+                    key={docIndex}
+                    style={styles.mainActivityContainerArticleNavigationViewContainerRow}
+                    onPress={() => setSavedFileName(doc.name)}
+                  >
+                    <View
+                      style={styles.mainActivityContainerArticleNavigationViewContainerRowAside}
+                    >
+                      <Entypo
+                        name="folder"
+                        size={24}
+                        color="black"  
+                      />
+                      <View
+                        style={styles.mainActivityContainerArticleNavigationViewContainerRowAsideInfo}
+                      >
+                        <Text
+                          style={styles.mainActivityContainerArticleNavigationViewContainerRowAsideInfoName}
+                        >
+                          {
+                            doc.name
+                          }
+                        </Text>
+                        <View
+                          style={styles.mainActivityContainerArticleNavigationViewContainerRowAsideInfoFooter}
+                        >
+                          <Text
+                            style={styles.mainActivityContainerArticleNavigationViewContainerRowAsideInfoFooterSizeLabel}
+                          >
+                            {
+                              `${doc.info.size} байт`
+                            }
+                          </Text>
+                          <Text
+                            style={styles.mainActivityContainerArticleNavigationViewContainerRowAsideInfoFooterDateLabel}
+                          >
+                            {
+                              getParsedDate(doc.info.modificationTime)
+                            }
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                    <Feather
+                      name="more-vertical"
+                      size={24}
+                      color="black"
+                      style={styles.mainActivityHeaderRightItem}
+                    />
+                  </TouchableOpacity>
+                )
+              })
+            }
+          </ScrollView>
+          <View
+            style={styles.dialogRowBetween}
+          >
+            <Text>
+              Имя файла:
+            </Text>
+            <TextInput
+              width={125}
+              value={savedFileName}
+              onChangeText={(value) => setSavedFileName(value)}
+            />
+          </View>
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button
+            title="ОТМЕНА"
+            onPress={() => {
+              setIsSaveDialogVisible(false)
+              setSavedFileName('')
+            }}
+          />
+          <Button
+            title="ОК"
+            onPress={() => {
+              setIsSaveDialogVisible(false)
+              createFile(savedFileName, '')
+              setSavedFileName('')
+            }}
+          />
+        </Dialog.Actions>
+      </Dialog>
     </>
   )
 }
@@ -4484,6 +5615,50 @@ export function MemoryManagerActivity({ navigation }) {
           setOpen(!open)
         }}
       />
+      <Dialog
+        visible={isStatisticsDialogVisible}
+        onDismiss={() => setIsStatisticsDialogVisible(false)}>
+        <Dialog.Title>
+          Статистика
+        </Dialog.Title>
+        <Dialog.Content>
+          <Text>
+            Количество символов
+          </Text>
+          <Text>
+            {
+              mainTextAreaContent.length
+            }
+          </Text>
+          <Text>
+            Количество слов
+          </Text>
+          <Text>
+            {
+              (mainTextAreaContent.split(' ').length && mainTextAreaContent.length) ?
+                mainTextAreaContent.split(' ').length
+              :
+                '0'
+            }
+          </Text>
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button
+            title="ОТМЕНА"
+            onPress={() => {
+              showToast(`ОТМЕНА`)
+              setIsStatisticsDialogVisible(false)
+            }}
+          />
+          <Button
+            title="ОК"
+            onPress={() => {
+              showToast(`ОК`)
+              setIsStatisticsDialogVisible(false)
+            }}
+          />
+        </Dialog.Actions>
+      </Dialog>
     </>
   )
 }
