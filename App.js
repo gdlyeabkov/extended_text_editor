@@ -4150,7 +4150,7 @@ export function SettingsActivity() {
             >
               <RadioButton
                 value="Русский"
-                label="ОТКЛ. (По умолчанию)s"
+                label="ОТКЛ. (По умолчанию)"
                 status={hints.checked === 'ОТКЛ. (По умолчанию)' ? 'checked' : 'unchecked'}
                 onPress={() => { setHints({ checked: 'ОТКЛ. (По умолчанию)' }) }}
               />
