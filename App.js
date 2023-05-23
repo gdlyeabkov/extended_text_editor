@@ -20,7 +20,6 @@ import { ColorPicker } from 'react-native-color-picker'
 import { TabView, SceneMap } from 'react-native-tab-view'
 import * as SQLite from 'expo-sqlite'
 import * as IntentLauncher from 'expo-intent-launcher'
-// import { startActivityAsync, ActivityAction } from 'expo-intent-launcher'
 import * as WebBrowser from 'expo-web-browser'
 import * as DocumentPicker from 'expo-document-picker'
 import Slider from '@react-native-community/slider'
@@ -103,9 +102,6 @@ export default function App() {
         />
         <Stack.Screen
           name="MainActivity"
-          // initialParams={{
-          //   fileUri: ''
-          // }}
           component={ MainActivity }
           options={{
             title: '',
@@ -627,27 +623,14 @@ export default function App() {
 
 export function MainActivity({ navigation, route }) {
   
-  // const { fileUri } = route.params
   const fileUri = route.params?.fileUri ?? ''
-
-  // useEffect(async () => {
-  //   if (fileUri.length) {
-  //     const info = await FileSystem.getInfoAsync(fileUri)
-  //     const content = await FileSystem.readAsStringAsync(fileUri, { encoding: FileSystem.EncodingType.UTF8 })
-  //     console.log(`передаваемый файл ${content}`)
-  //   } else {
-  //     console.log(`передаваемый файл не существует`)
-  //   }
-  // }, [fileUri])
 
   const getFileContent = async () => {
     if (fileUri.length) {
-      const info = await FileSystem.getInfoAsync(fileUri)
       const content = await FileSystem.readAsStringAsync(fileUri, { encoding: FileSystem.EncodingType.UTF8 })
-      console.log(`передаваемый файл ${content}`)
       setMainTextAreaContent(content)
     } else {
-      console.log(`передаваемый файл не существует`)
+      // передаваемый файл не существует
     }
   }
 
@@ -836,9 +819,6 @@ export function MainActivity({ navigation, route }) {
             <TouchableOpacity
               style={styles.mainActivityHeaderRightItemMenuItemRow}
               onPress={() => {
-                // IntentLauncher.startActivityAsync('android.intent.action.VIEW', {
-                //   flags: 1
-                // })
                 _pickDocument()
               }}
             >
@@ -1445,20 +1425,10 @@ export function MainActivity({ navigation, route }) {
 
   const onShare = async () => {
     try {
-      const result = await Share.share({
-        message: 'React Native | A framework for building native apps using React',
+      await Share.share({
+        message: ''
       });
-      if (result.action === Share.sharedAction) {
-        if (result.activityType) {
-          // shared with activity type of result.activityType
-        } else {
-          // shared
-        }
-      } else if (result.action === Share.dismissedAction) {
-        // dismissed
-      }
     } catch (error) {
-      alert(error.message);
     }
   }
 
@@ -1628,9 +1598,7 @@ export function MainActivity({ navigation, route }) {
 
   const _getAllFilesInDirectory = async() => {
     let dir = await FileSystem.readDirectoryAsync(FileSystem.cacheDirectory)
-    // let dirs = await FileSystem.readDirectoryAsync(FileSystem.cacheDirectory)
     dir.forEach(async (val) => {
-      console.log(`FileSystem.cacheDirectory + val: ${FileSystem.cacheDirectory + val}`)
       const fileUri = FileSystem.cacheDirectory + val
       const content = await FileSystem.readAsStringAsync(fileUri, { encoding: FileSystem.EncodingType.UTF8 })
       const info = await FileSystem.getInfoAsync(fileUri)
@@ -1649,13 +1617,11 @@ export function MainActivity({ navigation, route }) {
 
   const createFile = async () => {
     let fileUri = FileSystem.cacheDirectory + savedFileName
-    console.log(`create fileUri: ${fileUri}`)
     await FileSystem.writeAsStringAsync(fileUri, mainTextAreaContent, { encoding: FileSystem.EncodingType.UTF8 })
   }
 
   const fetchCopiedText = async () => {
     const text = await Clipboard.getString()
-    console.log(`text: ${text}`)
     setMainTextAreaContent(`${mainTextAreaContent}${text}`)
   }
 
@@ -4732,7 +4698,6 @@ export function FilesActionActivity({ navigation, route }) {
 
   const createFile = async (fileName, fileContent) => {
     let fileUri = FileSystem.cacheDirectory + fileName
-    console.log(`create fileUri: ${fileUri}`)
     await FileSystem.writeAsStringAsync(fileUri, fileContent, { encoding: FileSystem.EncodingType.UTF8 })
   }
 
@@ -4769,10 +4734,8 @@ export function FilesActionActivity({ navigation, route }) {
   }
 
   const _getAllFilesInDirectory = async() => {
-    // setDocsList([])
     let dir = await FileSystem.readDirectoryAsync(FileSystem.cacheDirectory)
     dir.forEach(async (val) => {
-      console.log(`FileSystem.cacheDirectory + val: ${FileSystem.cacheDirectory + val}`)
       const fileUri = FileSystem.cacheDirectory + val
       const content = await FileSystem.readAsStringAsync(fileUri, { encoding: FileSystem.EncodingType.UTF8 })
       const info = await FileSystem.getInfoAsync(fileUri)
@@ -4955,7 +4918,6 @@ export function FilesActionActivity({ navigation, route }) {
         labelStyle: styles.fabGrounpLabelStyle,
         labelTextColor: 'rgb(255, 255, 255)',
         onPress: () => {
-          console.log('Создать файл')
           setOpen(false)
           setIsCreateFileDialogVisible(true)
         }
@@ -4967,7 +4929,6 @@ export function FilesActionActivity({ navigation, route }) {
         labelStyle: styles.fabGrounpLabelStyle,
         labelTextColor: 'rgb(255, 255, 255)',
         onPress: () => {
-          console.log('Сохранить как')
           setOpen(false)
           setIsSaveDialogVisible(true)
         }
@@ -4985,7 +4946,6 @@ export function FilesActionActivity({ navigation, route }) {
                 key={docIndex}
                 style={styles.mainActivityContainerArticleNavigationViewContainerRow}
                 onPress={() => {
-                  console.log(`doc.info.uri: ${doc.info.uri}`)
                   goToActivity(navigation, MainActivity, {
                     fileUri: doc.info.uri
                   })
@@ -5057,7 +5017,6 @@ export function FilesActionActivity({ navigation, route }) {
             labelStyle: styles.fabGrounpLabelStyle,
             labelTextColor: 'rgb(255, 255, 255)',
             onPress: () => {
-              console.log('Создать папку')
               setOpen(false)
               setIsCreateFolderDialogVisible(true)
             }
@@ -5066,7 +5025,6 @@ export function FilesActionActivity({ navigation, route }) {
         ]}
         onStateChange={() => console.log('onStateChange')}
         onPress={() => {
-          console.log('Pressed')
           setOpen(!open)
         }}
       />
@@ -5304,7 +5262,6 @@ export function RecentOpenedFilesActivity() {
   const _getAllFilesInDirectory = async () => {
     let dir = await FileSystem.readDirectoryAsync(FileSystem.cacheDirectory)
     dir.forEach(async (val) => {
-      console.log(`FileSystem.cacheDirectory + val: ${FileSystem.cacheDirectory + val}`)
       const fileUri = FileSystem.cacheDirectory + val
       const content = await FileSystem.readAsStringAsync(fileUri, { encoding: FileSystem.EncodingType.UTF8 })
       const info = await FileSystem.getInfoAsync(fileUri)
@@ -5407,7 +5364,6 @@ export function RecentAddedFilesActivity() {
   const _getAllFilesInDirectory = async () => {
     let dir = await FileSystem.readDirectoryAsync(FileSystem.cacheDirectory)
     dir.forEach(async (val) => {
-      console.log(`FileSystem.cacheDirectory + val: ${FileSystem.cacheDirectory + val}`)
       const fileUri = FileSystem.cacheDirectory + val
       const content = await FileSystem.readAsStringAsync(fileUri, { encoding: FileSystem.EncodingType.UTF8 })
       const info = await FileSystem.getInfoAsync(fileUri)
@@ -5611,7 +5567,6 @@ export function MemoryManagerActivity({ navigation }) {
         ]}
         onStateChange={() => console.log('onStateChange')}
         onPress={() => {
-          console.log('Pressed')
           setOpen(!open)
         }}
       />
